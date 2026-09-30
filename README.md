@@ -8,6 +8,8 @@
 
 TypeScript · React · Web Worker · Raft · Deterministic Replay
 
+**[在线体验 →](https://qiyuhuating.github.io/quorum-lab/)** · [GitHub 仓库](https://github.com/qiyuhuating/quorum-lab)
+
 [![Verify and deploy](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml/badge.svg)](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml)
 
 [运行项目](#运行项目) · [协议架构](docs/architecture.md) · [验收证据](docs/validation.md) · [演示脚本](docs/demo-script.md) · [路线图](docs/roadmap.md)
@@ -99,7 +101,7 @@ docs/          架构、验收、测量、展示素材与发布交接
 - [GitHub 审查与选题依据](docs/github-audit.md)
 - [新仓库发布步骤](docs/publish.md)
 
-[GitHub 仓库](https://github.com/qiyuhuating/quorum-lab) 已创建。工作流对 `main` 的发布依赖全部验收通过；Pages 使用 GitHub Actions 部署。实时执行结果见上方状态与 [验收记录](docs/validation.md)。
+项目已发布至 [GitHub Pages](https://qiyuhuating.github.io/quorum-lab/)，线上生产 Worker 已通过实际写入与状态机校验。工作流对 `main` 的发布依赖全部验收通过；Pages 使用 GitHub Actions 部署。实时执行结果见上方状态与 [验收记录](docs/validation.md)。
 
 ## 实现范围
 

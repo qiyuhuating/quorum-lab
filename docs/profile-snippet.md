@@ -7,4 +7,4 @@
 - 运行时安全不变量；种子与操作记录支持精确回放、时间回溯和分支实验。
 - 自动化协议测试、多浏览器交互回归、GitHub Actions 验收与 Pages 发布流程。
 
-仓库和在线体验链接在成功发布后补入。
+[在线体验](https://qiyuhuating.github.io/quorum-lab/) · [源码与架构](https://github.com/qiyuhuating/quorum-lab)

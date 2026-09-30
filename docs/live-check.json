@@ -1,0 +1,10 @@
+{
+  "url": "https://qiyuhuating.github.io/quorum-lab/",
+  "httpStatus": 200,
+  "initialWrites": 2,
+  "writesAfterProposal": 3,
+  "appliedValue": "deployment-verified",
+  "safety": "321 次检查 0 violations",
+  "pageErrors": [],
+  "failedRequests": []
+}

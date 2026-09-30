@@ -1,6 +1,6 @@
 # Executed validation
 
-Recorded on 2026-09-30 (Asia/Singapore). Host: Windows, Node **v24.16.0**, npm **11.3.0**. These are local results; GitHub Actions execution and public hosting require the new repository to be created first.
+Recorded on 2026-09-30 (Asia/Singapore). Local host: Windows, Node **v24.16.0**, npm **11.3.0**. The same verification pipeline also passed remotely on Ubuntu in [GitHub Actions run 36716007978](https://github.com/qiyuhuating/quorum-lab/actions/runs/36716007978), including the deployment job.
 
 | Gate                                     | Actual result                                                                            |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -41,4 +41,8 @@ Screenshots and `demo.webm` were captured from the production application withou
 
 The tests sample deterministic schedules, not all possible executions. They do not establish formal verification or cover every network failure. Stable storage is modeled in memory. The cluster has five fixed members; real disk IO, membership changes, snapshot installation, linearizable reads and exactly-once client semantics are not implemented.
 
-Browser versions come from Playwright **1.63.0**: Chromium build **1243**, Firefox build **1543**, WebKit build **2359**. Browser acceptance passed in 22.0 seconds on this local run. CI will repeat it on Ubuntu; that remote run has not yet occurred.
+Browser versions come from Playwright **1.63.0**: Chromium build **1243**, Firefox build **1543**, WebKit build **2359**. Browser acceptance passed in 22.0 seconds on the local run. The same gates passed on the Ubuntu CI runner; the linked run exposes the individual successful steps.
+
+## Live deployment check
+
+[The public Pages site](https://qiyuhuating.github.io/quorum-lab/) returned HTTP **200**. A real browser loaded the production Worker, observed the two initial committed writes, submitted `live=deployment-verified` and observed **three committed writes** and the applied value in the state machine. The check recorded **0 page errors**, **0 failed requests** and **0 safety violations**. See [live-check.json](live-check.json) and [live screenshot](media/live.png).
