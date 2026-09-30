@@ -1,0 +1,7 @@
+{
+  "viewport": "1440x1180",
+  "mobile": "390x844",
+  "video": "demo.webm",
+  "source": "actual production application",
+  "stagedVisualEdits": false
+}

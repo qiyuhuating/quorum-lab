@@ -1,0 +1,14 @@
+{
+  "seeds": 100,
+  "virtualMsPerSeed": 49800,
+  "safetyViolations": 0,
+  "exactReplays": 100,
+  "transitions": 523843,
+  "messagesSent": 402771,
+  "simulationMedianMs": 58.93,
+  "simulationP95Ms": 93.77,
+  "replayMeanMs": 51.32,
+  "node": "v24.16.0",
+  "platform": "win32",
+  "note": "Wall-time numbers are local measurements, not a distributed-system throughput benchmark."
+}

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "seed": 7,
+  "actions": [
+    {
+      "type": "advance",
+      "ms": 1800
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "mission",
+      "value": "orbit"
+    },
+    {
+      "type": "advance",
+      "ms": 1000
+    },
+    {
+      "type": "partition",
+      "groups": [
+        [
+          "N1",
+          "N2"
+        ],
+        [
+          "N3",
+          "N4",
+          "N5"
+        ]
+      ]
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "signal",
+      "value": "minority-pending"
+    },
+    {
+      "type": "advance",
+      "ms": 2200
+    }
+  ]
+}
