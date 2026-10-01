@@ -1,10 +1,10 @@
-### Quorum Lab · 分布式共识实验室
+### Quorum Lab · 共识观测台
 
-独立实现固定五节点 Raft 协议，把选举、日志复制与故障恢复做成可操作的浏览器实验。
+独立实现五节点 Raft 协议，把网络分区、双领导者与日志修复做成六幕可交互实验。
 
-- TypeScript 确定性事件引擎、Web Worker 与实时拓扑可视化。
-- 网络分区、随机丢包、节点崩溃恢复与冲突日志修复。
-- 运行时安全不变量；种子与操作记录支持精确回放、时间回溯和分支实验。
-- 自动化协议测试、多浏览器交互回归、GitHub Actions 验收与 Pages 发布流程。
+- TypeScript 确定性事件引擎、Web Worker、空间网络与实时副本证据。
+- 实际 RPC 载荷/投递状态检查、逐事件调试、精确回放与分支对照。
+- 崩溃恢复、乱序、丢包、冲突日志修复与运行时安全检测。
+- 18 项协议测试、39 项多浏览器生产验收与 GitHub Actions Pages 发布门禁。
 
 [在线体验](https://qiyuhuating.github.io/quorum-lab/) · [源码与架构](https://github.com/qiyuhuating/quorum-lab)

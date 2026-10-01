@@ -1,29 +1,27 @@
 # A 90-second interview walkthrough
 
-## 0–15 seconds: a working system
+## 0–15 seconds: show the contradiction
 
-Open the lab. Explain that the two starter writes were submitted to the actual model and replicated through the same protocol as every subsequent write. Point to the leader, current term, per-node log colors and identical applied state.
+Open the observatory and choose chapter 03. Point to the physically separated islands and the two leaders in different terms. The orange proposal has two replicas, so it cannot collect the required three acknowledgements. The accepted-write count and committed state are different concepts.
 
-## 15–40 seconds: split the network
+## 15–35 seconds: let the majority move
 
-Choose **少数派隔离**. The former leader remains with one peer; three peers elect a new leader in a later term. The minority proposal stays pending. Explain that two leaders in different terms are allowed, while two elected leaders in the same term are forbidden.
+Choose chapter 04. `blue-route` is committed and applied on three nodes. The two minority nodes still carry `red-route` as a pending suffix. The log matrix and live evidence are independently calculated from actual node snapshots.
 
-Submit `signal=majority-safe` to the automatic highest-term leader. Run the experiment. The committed-write count increases and only the majority applies the new value.
+## 35–55 seconds: inspect the moment before repair
 
-## 40–60 seconds: recover and repair
+Choose chapter 05. Connectivity is restored, but virtual time remains 4.80 seconds and logs are still divergent. Fix the current state as a baseline, then execute the next protocol event. Inspect an actual AppendEntries payload, previous index/term and leader commit. The scheduler orders events by time and insertion sequence; it skips invalidated timers during event stepping.
 
-Choose **恢复全部链路**. Observe the old leader stepping down, conflict truncation in the event stream and all five logs converging. The formerly pending minority value disappears. Explain the current-term commit rule and why every new leader adds a no-op.
+## 55–70 seconds: show convergence
 
-## 60–75 seconds: reproduce the failure
+Choose chapter 06. All five logs agree and apply `blue-route`; the uncommitted `red-route` is removed. Open the protocol event stream to find conflict truncation. Explain the current-term commit rule and new-leader no-op.
 
-Pause and export. Reset, import the JSON and show that virtual time, messages, logs and metrics return to the same state. Rewind to an earlier operation and take a different action to create a branch. The worker keeps replay computation away from the interface thread.
+## 70–90 seconds: reproduce and show evidence
 
-## 75–90 seconds: engineering evidence and boundaries
-
-Show runtime safety checks, protocol tests, three-browser tests and the measured seed benchmark. Describe the distinction between sampled test evidence and a formal proof. This version models stable storage in memory and fixed membership; it is an executable educational model rather than a production database.
+Export the experiment, reset and import it. Rewind to a checkpoint and stop a node to create a different branch. Show the test/CI evidence and clarify the model's boundaries: fixed membership, simulated stable storage, no production disk IO or linearizable read API.
 
 ## Resume wording
 
-> 独立设计并实现 Quorum Lab 分布式共识实验室：以 TypeScript 构建确定性 Raft 事件引擎，通过 Web Worker 驱动五节点选举与日志复制；支持网络分区、丢包、崩溃恢复、冲突日志修复、运行时安全检查及精确回放；使用协议测试、多浏览器回归与 GitHub Actions 验收交付。
+> 独立设计并发布 Quorum Lab 共识观测台：以 TypeScript 实现五节点 Raft 确定性事件引擎，通过 Web Worker 驱动选举、复制与故障恢复；将分区与冲突日志修复呈现为六幕可交互实验，支持真实 RPC 取证、逐事件调试、历史回放与分支对照；使用 18 项协议测试、39 项多浏览器验收和 GitHub Actions 发布门禁交付。
 
-Use specific test counts and measured numbers from `validation.md` only. Do not describe planned features, live public hosting, real disk durability or formal verification as completed until each is actually delivered.
+Use current executed counts from validation.md. Describe a tested protocol model, not a production database or formally verified system.

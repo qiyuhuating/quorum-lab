@@ -28,6 +28,6 @@ To rerun an existing failed workflow, inspect its logs and repair the reported c
 
 ## Release materials
 
-The v0.1.0 release uses [release-notes.md](release-notes.md). Portable demo and source archives are generated from the delivered revision. [demo-script.md](demo-script.md) provides a 90-second walkthrough. [profile-snippet.md](profile-snippet.md) is available for a later deliberate profile update.
+The v0.2.0 release uses [release-notes.md](release-notes.md). Portable demo and source archives are generated from the delivered revision. [demo-script.md](demo-script.md) provides a 90-second walkthrough. [profile-snippet.md](profile-snippet.md) is available for a later deliberate profile update.
 
 All remote writes for this delivery are scoped to the new `quorum-lab` repository. `yihe-health` and the other audited repositories are independent.

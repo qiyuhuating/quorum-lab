@@ -27,6 +27,7 @@ export interface NodeView {
 }
 export type Action =
   | { type: 'advance'; ms: number }
+  | { type: 'step' }
   | { type: 'write'; node: NodeId; key: string; value: string }
   | { type: 'crash' | 'recover'; node: NodeId }
   | { type: 'partition'; groups: NodeId[][] }
@@ -51,6 +52,32 @@ export interface Packet {
   sentAt: number;
   deliverAt: number;
   dropped: boolean;
+  status: 'in-flight' | 'delivered' | 'dropped';
+  dropReason?: 'packet-loss' | 'partition-on-send' | 'receiver-offline' | 'partition-at-delivery';
+  payload: Rpc;
+}
+export type Rpc = { from: NodeId; to: NodeId; term: number } & (
+  | { kind: 'vote'; lastIndex: number; lastTerm: number }
+  | { kind: 'voted'; granted: boolean }
+  | {
+      kind: 'append';
+      prevIndex: number;
+      prevTerm: number;
+      entries: Entry[];
+      leaderCommit: number;
+      rpc: number;
+    }
+  | { kind: 'appended'; success: boolean; match: number; requestPrev: number; rpc: number }
+);
+export interface ScheduledEvent {
+  at: number;
+  seq: number;
+  type: 'election' | 'heartbeat' | 'message';
+  node?: NodeId;
+  from?: NodeId;
+  to?: NodeId;
+  kind?: string;
+  packetId?: number;
 }
 export interface Metrics {
   sent: number;
@@ -74,6 +101,8 @@ export interface Snapshot {
   violations: string[];
   checked: number;
   actionCount: number;
+  queue: ScheduledEvent[];
+  lastEvent?: ScheduledEvent;
 }
 export interface ActionResult {
   ok: boolean;

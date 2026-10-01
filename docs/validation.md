@@ -1,48 +1,41 @@
-# Executed validation
+# Executed validation — v0.2.0
 
-Recorded on 2026-09-30 (Asia/Singapore). Local host: Windows, Node **v24.16.0**, npm **11.3.0**. The same verification pipeline also passed remotely on Ubuntu in [GitHub Actions run 36716007978](https://github.com/qiyuhuating/quorum-lab/actions/runs/36716007978), including the deployment job.
+Recorded on **2026-10-01 (Asia/Singapore)**. Local Windows host, Node **v24.16.0**, npm **11.3.0**. GitHub Actions repeats the verification gates on Ubuntu before publishing main: [workflow history](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml).
 
-| Gate                                     | Actual result                                                                            |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------- |
-| TypeScript strict checking               | Passed                                                                                   |
-| Production build                         | Passed; React application and separately bundled Web Worker                              |
-| Engine tests                             | **14 passed**                                                                            |
-| Seeded schedules inside engine tests     | **40**, safety checked throughout; logs/state converge after healing                     |
-| Production browser tests                 | **24 passed**: 8 each in Chromium, Firefox and WebKit                                    |
-| Responsive document widths               | **320, 390, 768, 1440 px**, tested in all three engines; no horizontal document overflow |
-| Repository subpath                       | `/quorum-lab/` application, relative assets and Worker loaded successfully               |
-| External asset requests                  | **0** during the production subpath check                                                |
-| Extended deterministic benchmark         | **100 seeds**, 49.8 seconds virtual time each                                            |
-| State checks in extended benchmark       | **523,843**                                                                              |
-| Simulated messages in extended benchmark | **402,771**                                                                              |
-| Exact full-snapshot replays              | **100 / 100**                                                                            |
-| Detected safety violations               | **0**                                                                                    |
-| npm advisory audit                       | **0 reported vulnerabilities**, queried from the official npm registry                   |
+| Gate                                   | Executed result                                                                   |
+| -------------------------------------- | --------------------------------------------------------------------------------- |
+| Strict TypeScript and production build | Passed; separate production Worker                                                |
+| Engine tests                           | **18 passed**, including four observatory cases                                   |
+| Existing seeded fault coverage         | **40 schedules**, safety and final convergence                                    |
+| Production browser acceptance          | **39 passed**, 13 each in Chromium, Firefox and WebKit                            |
+| Automatic tour                         | Restarts from final checkpoint, completes chapters and stops in each browser      |
+| Real chapter evidence                  | Minority copies 2/5; majority applied 3/5; repaired application/log agreement 5/5 |
+| Event step and RPC                     | Actual event identity/time, payload, drop causes and immutable views              |
+| Replay and branching                   | Complete snapshots restored; steps export/import; invalid imports preserve state  |
+| First desktop viewport                 | Complete network/log matrix and six chapters fit **1440 × 900**                   |
+| Responsive widths                      | **320, 390, 768, 1440 px**, no document overflow in all three engines             |
+| Keyboard and reduced motion            | Node/chapter activation, Escape close, decorative animation disabled              |
+| Production subpath/assets              | `/quorum-lab/` and Worker work; **zero external asset requests**                  |
+| Extended benchmark                     | **100 seeds**, 49.8 seconds virtual time each                                     |
+| Runtime state checks                   | **523,843**                                                                       |
+| Simulated messages                     | **402,771**                                                                       |
+| Complete snapshot exact replays        | **100 / 100**, including payload/status and event queue                           |
+| Detected safety violations             | **0**                                                                             |
 
-## Measured wall time
+## Evidence and measurement
 
-The separately recorded benchmark observed a median simulation time of **58.93 ms** per seed, P95 of **93.77 ms**, and average exact replay time of **51.32 ms**. Each seed simulated 49.8 seconds with periodic partitions, node crashes, jitter/loss, writes, recovery and final healing. The numbers are specific to this host and run. They measure this event model and its observers, not physical distributed-cluster throughput.
+[benchmark.json](benchmark.json) records this run. Richer packet/event observations add snapshot work. Host wall times measure the model and observers, not physical distributed-cluster throughput. Reproduce with `npm run benchmark`.
 
-The raw result is [benchmark.json](benchmark.json). `npm run benchmark` reruns the same 100 schedules and checks replay equality before printing timings.
+Protocol tests inspect actual logs and state machines at all six action prefixes, including minority conflicts immediately after reconnect. Event tests compare each executed event with the visible queue head, then replay the complete history. Packet tests mutate a returned payload and verify the stored protocol value remains intact; newly partitioned in-flight packets record a delivery-time drop.
 
-## Browser evidence
+Browser tests use compiled assets and the production Worker for writes, recovery, tour completion, chapters, RPC inspection, event steps, baseline comparison, branching and invalid imports. Playwright **1.63.0** bundles Chromium **1243**, Firefox **1543** and WebKit **2359**.
 
-- Real proposals increase committed writes and appear in a node's applied map.
-- Minority proposals remain pending; majority proposals commit and become visible on recovered minority nodes after healing.
-- Crashed leader re-election and recovery restore applied committed data.
-- Export/import restores virtual time and safety-check counts. Invalid imports retain the active experiment.
-- Rewind restores historical state; a new operation creates a branch and discards the old future from that branch.
-- SVG nodes can be selected by keyboard; the protocol dialog closes with Escape.
-- The identical production build runs in all three engines and at all four checked widths.
+Screenshots and video in [media/](media/) come from the production app without staged visual edits. [capture-info.json](media/capture-info.json) records viewports and page-error results. [Experiment fixtures](experiments/) use the same production engine.
 
-Screenshots and `demo.webm` were captured from the production application without staged visual edits. The recording shows a real minority partition, a majority proposal and healed convergence. Sample replay files in `docs/experiments/` are generated by the same engine used in production.
+## Deployment evidence
 
-## Practical limits
+The [public observatory](https://qiyuhuating.github.io/quorum-lab/) publishes only after formatting, protocol/browser tests and benchmark gates pass. [live-check.json](live-check.json) records the latest executed online browser check; its version identifies the checked release. Source and media are published through GitHub connector Git data operations.
 
-The tests sample deterministic schedules, not all possible executions. They do not establish formal verification or cover every network failure. Stable storage is modeled in memory. The cluster has five fixed members; real disk IO, membership changes, snapshot installation, linearizable reads and exactly-once client semantics are not implemented.
+## Limits
 
-Browser versions come from Playwright **1.63.0**: Chromium build **1243**, Firefox build **1543**, WebKit build **2359**. Browser acceptance passed in 22.0 seconds on the local run. The same gates passed on the Ubuntu CI runner; the linked run exposes the individual successful steps.
-
-## Live deployment check
-
-[The public Pages site](https://qiyuhuating.github.io/quorum-lab/) returned HTTP **200**. A real browser loaded the production Worker, observed the two initial committed writes, submitted `live=deployment-verified` and observed **three committed writes** and the applied value in the state machine. The check recorded **0 page errors**, **0 failed requests** and **0 safety violations**. See [live-check.json](live-check.json) and [live screenshot](media/live.png).
+Fixed membership and simulated stable storage; no disk IO, membership changes, compaction, linearizable reads or exactly-once API. Sampled tests do not exhaustively prove all executions. Runtime safety observations collect evidence rather than formal verification.

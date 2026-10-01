@@ -2,73 +2,89 @@
 
 # Quorum Lab
 
-### Break the network. Watch consensus survive.
+### CONSENSUS, UNDER PRESSURE.
 
-**让网络失联。让共识发生。**
+**共识，承压。**
 
-TypeScript · React · Web Worker · Raft · Deterministic Replay
+An executable exhibit of distributed consensus.
 
-**[在线体验 →](https://qiyuhuating.github.io/quorum-lab/)** · [GitHub 仓库](https://github.com/qiyuhuating/quorum-lab)
+**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.2.0 Release](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.2.0)
 
 [![Verify and deploy](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml/badge.svg)](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml)
 
-[运行项目](#运行项目) · [协议架构](docs/architecture.md) · [验收证据](docs/validation.md) · [演示脚本](docs/demo-script.md) · [路线图](docs/roadmap.md)
+TypeScript · React · Web Worker · Independent Raft Engine
 
-![Quorum Lab production UI](docs/media/desktop.png)
+![The consensus observatory — actual production application](docs/media/majority.png)
 
 </div>
 
-独立实现的五节点 Raft 共识实验室。每个节点维护自己的任期、投票与日志，通过有延迟、乱序、丢包和分区的模拟网络交换协议消息。在浏览器中停止一个节点、切开网络，再逐条观察选举、提交与日志修复。
+五个节点各自维护任期、投票和日志。网络断成两个小岛之后，两个领导者会同时存在，但只有一侧能把新提案变成已提交的事实。Quorum Lab 把这个过程做成可操作、可检查、可精确复现的作品。
 
-项目与 `yihe-health` 完全独立：不同领域、独立源码、独立构建与部署。它把分布式协议、可复现调试和交互可视化放在同一个可运行作品里。
+项目与 `yihe-health` 完全独立，拥有独立领域、源码、构建和部署。这里的领导者、写入与日志修复来自独立实现的协议，不由界面直接指定或同步。
 
-## 你能实际操作什么
+## 先看一个完整实验
 
-- **打断多数派**：把旧领导者留在 2/5 少数派；观察它接受提案却无法提交，3/5 多数派重新选举并继续写入。
-- **修复冲突日志**：恢复链路，观察旧领导者退位和未提交后缀被覆盖，五个节点重新收敛。
-- **崩溃并恢复**：保留模拟稳定存储中的任期、投票与日志，清空易失状态，重启后重新同步。
-- **调整消息网络**：改变虚拟延迟与随机丢包率，查看投票、复制、消息投递与提交 P95。
-- **检查内部状态**：查看逐节点日志、commit/applied index、投票、复制进度与已提交状态机。
-- **精确复现实验**：导出随机种子与完整操作序列，导入后恢复相同快照；回到任意操作，再创建不同分支。
+打开页面，点击 **自动导览**，或逐个选择六个章节：
 
-![Partitioned cluster with leaders in different terms](docs/media/partition.png)
+| 章节            | 真实发生的变化                   | 可检查的证据                                  |
+| --------------- | -------------------------------- | --------------------------------------------- |
+| 01 共同的事实   | 完成选举与两个初始写入           | 五份日志与状态机一致                          |
+| 02 切开网络     | 旧领导者被留在 2/5 少数派        | 链路断开，节点认知暂未改变                    |
+| 03 少数派的困局 | 接受 `red-route`；多数派重新选举 | 两个副本、零新增提交、不同任期的两个领导者    |
+| 04 多数派继续   | 多数派提交 `blue-route`          | 三个节点应用新值，少数派保留待提交后缀        |
+| 05 重新连通     | 恢复链路，暂不推进时钟           | 抓住日志修复发生之前的瞬间                    |
+| 06 日志收敛     | 旧领导者退位，冲突后缀被覆盖     | `red-route` 消失；五个状态机应用 `blue-route` |
 
-## 工程深度
+导览是种子 **7** 的同一个操作历史中的六个检查点。每个检查点在 Worker 中执行真实协议回放。右侧证据和中心副本数由当前快照计算。控制节点、写入或推进时间后，进入自由实验并从此处分支。
 
-| 设计                              | 为什么这样做                                                             |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| 独立协议核心                      | 选举与复制由 RPC 触发，UI 只发送操作并显示快照                           |
-| 稳定最小堆 + 虚拟时钟             | 相同种子和操作有相同的事件顺序，能精确复现故障                           |
-| 当前任期提交规则 + 新领导者 no-op | 通过多数派确认安全提交继承日志                                           |
-| 带请求序号的 AppendEntries 响应   | 处理乱序回复，防止过期反馈回退复制进度                                   |
-| Web Worker                        | 协议运算和历史重建与界面线程分离                                         |
-| 历史安全观察器                    | 持续检查 election safety、leader completeness、log matching 与应用一致性 |
-| 有界且预校验的回放格式            | 拒绝无效操作、超大输入与超长实验；错误导入保留当前实验                   |
-| 同一生产构建的三浏览器验收        | 本地演示与 CI 都验证实际编译产物，包含仓库子路径和移动端宽度             |
+![Minority proposal held on only two replicas](docs/media/partition.png)
 
-详细算法、状态生命周期和实现边界见 [architecture.md](docs/architecture.md)。依据 [Raft 原论文](https://raft.github.io/raft.pdf) 的 Figure 2 与 §5.2–5.4 独立实现。
+## 从观测进入调试
 
-## 运行项目
+- **逐事件推进**：执行下一条有效消息或定时器，跳过已经失效的定时器；查看即将发生的事件及顺序。
+- **RPC 取证**：检查实际 RequestVote / AppendEntries 请求与回复的完整载荷、任期、前缀索引、提交索引、投递状态与丢包原因。
+- **日志与节点透视**：对比五份日志，查看最新提案值、待提交状态、投票、commit/applied index、状态机与领导者复制进度。
+- **故障注入**：停止或恢复节点，切成 2│3 分区，改变延迟与丢包；明确选择旧领导者作为写入目标。
+- **回到过去**：操作滑块重建任意历史前缀，固定当前快照作为对照，改变下一步，再比较节点内部状态与提交数量。
+- **完整复现**：导出种子与操作序列，导入后恢复相同完整快照。历史原始未来保留到一次新的分支操作发生。
 
-需要 Node.js **22.12+**，CI 使用 Node 24。
+![Actual RPC payload, event queue, node state and fault controls](docs/media/forensics.png)
+
+## 工程设计
+
+| 设计                               | 解决的问题                                                 |
+| ---------------------------------- | ---------------------------------------------------------- |
+| 五个独立 Raft 状态机 + RPC         | UI 不参与协议决策；选举与复制通过消息完成                  |
+| 稳定最小堆 + Mulberry32 + 虚拟时钟 | 延迟、乱序、丢包与故障可以精确重放                         |
+| 当前任期提交规则 + 新领导者 no-op  | 安全提交当前与继承的日志条目                               |
+| AppendEntries 请求序号与覆盖索引   | 忽略过期响应；防止乱序反馈回退复制进度                     |
+| 模拟稳定存储与易失状态分离         | 崩溃保留任期/投票/日志，恢复后通过协议重建应用状态         |
+| Worker 中的检查点重建              | 导览、历史回放与协议运算离开界面线程                       |
+| 历史安全观察器                     | 监测选举唯一性、领导者完整性、日志匹配、应用安全与提交前缀 |
+| 有界消息取证与输入验证             | 保留最近 128 条真实 RPC；拒绝无效、超大或超长实验          |
+| 三浏览器生产验收 + Pages 发布门禁  | 验证真实构建、Worker、仓库子路径、移动端与减少动画模式     |
+
+[架构与协议细节](docs/architecture.md) · [设计反思与验收目标](docs/redesign.md) · [验收结果](docs/validation.md) · [路线图](docs/roadmap.md)
+
+## 本地运行
+
+Node.js **22.12+**，CI 使用 Node 24。
 
 ```sh
 npm ci
 npm run dev
 ```
 
-开发入口由终端给出。运行生产构建：
+生产版本：
 
 ```sh
 npm run build
 npm run demo
 ```
 
-打开 `http://127.0.0.1:4173/quorum-lab/`。Worker 需要 HTTP 环境，不能直接双击 `dist/index.html`。便携演示包提供启动脚本，无需安装 npm 依赖。
+打开 `http://127.0.0.1:4173/quorum-lab/`。初始状态已经通过协议提交两个示例写入，并暂停等待操作。Worker 需要 HTTP 环境。Release 提供无需安装 npm 依赖的便携演示包，仍需 Node.js。
 
-初始页面已通过真实选举与复制提交两个示例写入，并暂停等待操作。点击「运行」让虚拟时间前进；「单步」推进 100ms。实验最大虚拟时间为 120 秒，最多 6,000 次操作。
-
-## 验证
+## 验证与边界
 
 ```sh
 npm run check
@@ -77,36 +93,22 @@ npm run test:e2e
 npm run benchmark
 ```
 
-协议用例验证多数派、分区、崩溃恢复、全节点重启、冲突修复、回放和分支。浏览器用例验证真实界面、键盘、导入错误、生产 Worker、仓库子路径和 320/390/768/1440px 布局。
+**18 个协议测试、39 个生产浏览器测试**；100 组额外故障实验执行 **523,843** 次状态检查，发送 **402,771** 条模拟消息，全部完整快照精确回放，未检测到安全违规。执行记录与测量见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
 
-100 组额外确定性故障实验检查了 **523,843** 次状态转换、发送 **402,771** 条模拟消息，全部精确回放，未检测到安全违规。记录及测试数量见 [validation.md](docs/validation.md)，机器与时间数据见 [benchmark.json](docs/benchmark.json)。这些结果是模拟器的测试证据，不代表生产集群吞吐或形式化证明。
+实现固定五节点、对称分区、基本 Raft、模拟稳定存储与字符串状态机。真实磁盘 IO、快照压缩、成员变更、真实客户端发现、恰好一次语义和线性一致读尚未实现。自动写入目标为实验者的全局观察便利，不模拟真实客户端发现。
 
-## 项目结构
+## 展示材料
+
+[90 秒面试演示](docs/demo-script.md) · [实际界面录屏](docs/media/demo.webm) · [移动端](docs/media/mobile.png) · [项目选题审查](docs/github-audit.md) · [发布流程](docs/publish.md)
 
 ```text
-src/engine/    Raft、事件队列、输入验证、回放、Worker 协议
-src/ui/        React 控制台、SVG 拓扑、快照桥接
-tests/         协议与确定性故障测试
-e2e/           三浏览器生产构建验收
-scripts/       便携服务器、基准、演示素材采集
-docs/          架构、验收、测量、展示素材与发布交接
-.github/       验收与 GitHub Pages 发布流程
+src/engine/    协议、事件队列、六幕实验、回放与 Worker
+src/ui/        空间网络、日志矩阵、取证与操作界面
+tests/         协议、故障、安全与检查点证据
+e2e/           Chromium / Firefox / WebKit 生产交互验收
+scripts/       静态服务器、基准、真实演示采集
+docs/          架构、验收、演示素材与路线图
+.github/       CI 与 GitHub Pages 部署门禁
 ```
-
-## 演示与发布
-
-- [90 秒演示与简历表述](docs/demo-script.md)
-- [真实界面录屏](docs/media/demo.webm)
-- [移动端截图](docs/media/mobile.png)
-- [GitHub 审查与选题依据](docs/github-audit.md)
-- [新仓库发布步骤](docs/publish.md)
-
-项目已发布至 [GitHub Pages](https://qiyuhuating.github.io/quorum-lab/)，线上生产 Worker 已通过实际写入与状态机校验。工作流对 `main` 的发布依赖全部验收通过；Pages 使用 GitHub Actions 部署。实时执行结果见上方状态与 [验收记录](docs/validation.md)。
-
-## 实现范围
-
-固定五节点、对称分区、基本 Raft、内存中的稳定存储模型和确定性字符串状态机。尚未实现真实磁盘 IO、快照压缩、成员变更、真实客户端发现、恰好一次语义和线性一致读。具体后续项见 [roadmap.md](docs/roadmap.md)。
-
-## License
 
 [MIT](LICENSE) © 2026 qiyuhuating

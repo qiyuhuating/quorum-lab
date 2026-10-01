@@ -1,7 +1,9 @@
 {
-  "viewport": "1440x1180",
+  "version": "0.2.0",
+  "viewport": "1440x900",
   "mobile": "390x844",
   "video": "demo.webm",
   "source": "actual production application",
-  "stagedVisualEdits": false
+  "stagedVisualEdits": false,
+  "pageErrors": []
 }

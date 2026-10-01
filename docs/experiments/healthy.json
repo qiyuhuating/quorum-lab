@@ -14,7 +14,17 @@
     },
     {
       "type": "advance",
-      "ms": 1000
+      "ms": 200
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "mode",
+      "value": "nominal"
+    },
+    {
+      "type": "advance",
+      "ms": 200
     }
   ]
 }

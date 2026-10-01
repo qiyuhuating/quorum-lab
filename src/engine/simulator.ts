@@ -15,6 +15,8 @@ import {
   type ReplayDocument,
   type Snapshot,
   type Trace,
+  type Rpc,
+  type ScheduledEvent,
 } from './types.ts';
 
 interface Node extends NodeView {
@@ -22,19 +24,6 @@ interface Node extends NodeView {
   heartbeatEpoch: number;
   ackSeq: Partial<Record<NodeId, number>>;
 }
-type Rpc = { from: NodeId; to: NodeId; term: number } & (
-  | { kind: 'vote'; lastIndex: number; lastTerm: number }
-  | { kind: 'voted'; granted: boolean }
-  | {
-      kind: 'append';
-      prevIndex: number;
-      prevTerm: number;
-      entries: Entry[];
-      leaderCommit: number;
-      rpc: number;
-    }
-  | { kind: 'appended'; success: boolean; match: number; requestPrev: number; rpc: number }
-);
 type Event = { at: number; seq: number } & (
   | { type: 'election' | 'heartbeat'; node: NodeId; epoch: number }
   | { type: 'message'; message: Rpc; packet: Packet }
@@ -62,6 +51,7 @@ export class Simulator {
   private packets: Packet[] = [];
   private violations: string[] = [];
   private checked = 0;
+  private lastEvent?: ScheduledEvent;
   // These maps are safety/latency observers, never inputs to protocol decisions.
   private elected = new Map<number, NodeId>();
   private committed = new Map<number, Entry>();
@@ -145,7 +135,17 @@ export class Simulator {
       sentAt: this.now,
       deliverAt: this.now + delay,
       dropped: loss || !this.connected(message.from, message.to) || this.get(message.to).crashed,
+      status: 'in-flight',
+      payload: structuredClone(message),
     };
+    if (packet.dropped) {
+      packet.status = 'dropped';
+      packet.dropReason = loss
+        ? 'packet-loss'
+        : this.get(message.to).crashed
+          ? 'receiver-offline'
+          : 'partition-on-send';
+    }
     this.metrics.sent++;
     this.packets.push(packet);
     if (this.packets.length > 128) this.packets.shift();
@@ -354,16 +354,22 @@ export class Simulator {
     }
   }
   private process(event: Event) {
+    if (this.active(event)) this.lastEvent = this.describe(event);
     if (event.type === 'message') {
       if (
         !this.connected(event.message.from, event.message.to) ||
         this.get(event.message.to).crashed
       ) {
         event.packet.dropped = true;
+        event.packet.status = 'dropped';
+        event.packet.dropReason = this.get(event.message.to).crashed
+          ? 'receiver-offline'
+          : 'partition-at-delivery';
         this.metrics.dropped++;
         return;
       }
       this.metrics.delivered++;
+      event.packet.status = 'delivered';
       this.receive(event.message);
     } else {
       const n = this.get(event.node);
@@ -380,6 +386,29 @@ export class Simulator {
         });
       }
     }
+  }
+  private active(event: Event): boolean {
+    if (event.type === 'message') return true;
+    const n = this.get(event.node);
+    return (
+      !n.crashed &&
+      (event.type === 'election'
+        ? n.role !== 'leader' && event.epoch === n.electionEpoch
+        : n.role === 'leader' && event.epoch === n.heartbeatEpoch)
+    );
+  }
+  private describe(event: Event): ScheduledEvent {
+    return event.type === 'message'
+      ? {
+          at: event.at,
+          seq: event.seq,
+          type: event.type,
+          from: event.message.from,
+          to: event.message.to,
+          kind: event.message.kind,
+          packetId: event.packet.id,
+        }
+      : { at: event.at, seq: event.seq, type: event.type, node: event.node };
   }
   private require(condition: boolean, message: string): asserts condition {
     if (!condition) {
@@ -423,9 +452,23 @@ export class Simulator {
       throw new Error('实验已达 6000 次操作上限，请重置或导出。');
     if (action.type === 'advance' && this.now + action.ms > MAX_TIME)
       throw new Error('实验已达 120 秒虚拟时间上限，请重置或导出。');
+    const next =
+      action.type === 'step' ? this.queue.ordered().find((e) => this.active(e)) : undefined;
+    if (action.type === 'step' && (!next || next.at > MAX_TIME))
+      throw new Error('120 秒范围内没有可执行事件，请重置或导出。');
     this.actions.push(structuredClone(action));
     let result: ActionResult = { ok: true, message: '' };
     switch (action.type) {
+      case 'step': {
+        let event: Event;
+        do {
+          event = this.queue.pop()!;
+          this.now = event.at;
+          this.process(event);
+          this.check();
+        } while (event.seq !== next!.seq);
+        break;
+      }
       case 'advance': {
         const target = this.now + action.ms;
         while (this.queue.peek() && this.queue.peek()!.at <= target) {
@@ -515,11 +558,17 @@ export class Simulator {
       groups: this.groups,
       network: this.network,
       metrics: { ...this.metrics, latencyP50: percentile(0.5), latencyP95: percentile(0.95) },
-      packets: this.packets.filter((p) => p.deliverAt + 250 > this.now),
+      packets: this.packets,
       trace: this.trace,
       violations: this.violations,
       checked: this.checked,
       actionCount: this.actions.length,
+      queue: this.queue
+        .ordered()
+        .filter((e) => this.active(e))
+        .slice(0, 12)
+        .map((e) => this.describe(e)),
+      ...(this.lastEvent ? { lastEvent: this.lastEvent } : {}),
     });
   }
 }

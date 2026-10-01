@@ -1,18 +1,18 @@
-# Quorum Lab v0.1.0
+# Quorum Lab v0.2.0 — Consensus, under pressure
 
-An interactive fixed-membership Raft laboratory with an independently implemented protocol and reproducible experiments.
+**[Live observatory](https://qiyuhuating.github.io/quorum-lab/)** · [Source and architecture](https://github.com/qiyuhuating/quorum-lab)
 
-**[Live demo](https://qiyuhuating.github.io/quorum-lab/)** · [Source](https://github.com/qiyuhuating/quorum-lab)
+A substantial redesign of the independent five-node Raft laboratory.
 
-- Five-node elections, heartbeat/log replication, current-term majority commits and new-leader no-ops.
-- Virtual-time, seeded event scheduling, symmetric network partitions, jitter, loss and crash/recovery.
-- React/SVG interface backed by a Web Worker, log matrix, node state-machine inspector and event trace.
-- Historical safety observers plus versioned experiment export/import, rewind and branching.
-- TypeScript checks, deterministic protocol tests, three-browser acceptance and gated Pages deployment workflow.
-- MIT source, architecture/acceptance documents, interview walkthrough, screenshots and portable static demo.
+- Warm editorial framing, spatial node platforms, animated partition separation and live replica counts.
+- Six real protocol checkpoints: healthy state, partition, minority proposal, majority commit, reconnect, conflict repair.
+- Actual RPC payloads, delivery/drop causes, upcoming event queue and one-event deterministic stepping.
+- Inline proposal values, log divergence, node state, pinned baseline comparison and replay branching.
+- Keyboard interaction and reduced motion; all assets and simulation remain local to the browser.
+- Updated screenshots, actual production recording, interview walkthrough and portable demo.
 
-Scope: simulated stable storage and fixed five-node membership. Snapshot compaction, configuration changes, production disk IO and linearizable read protocols are future work.
+Validation: 18 engine tests, 39 production tests across Chromium/Firefox/WebKit, 100 exact full-snapshot benchmark replays, 523,843 runtime state checks and zero detected safety violations.
 
-Validation: **14 engine tests**, **24 production browser tests**, **100 exact benchmark replays**, **523,843 state checks**, **0 detected safety violations**. The Ubuntu verification and Pages deployment jobs passed, and a real browser verified a new committed write on the public site.
+The source/media commit uses the connected GitHub blob/tree/commit/ref tools. Existing GitHub CLI authentication supplies release administration. The gated Pages workflow runs the verification suite before deployment.
 
-See the validation report and repository Actions page for execution evidence. The repository was created using the user's existing GitHub CLI login; source and media uploads use the GitHub connector.
+Scope: fixed membership, symmetric partitions and simulated stable storage. No real disk durability, member reconfiguration, exactly-once client semantics, linearizable reads or formal correctness proof.

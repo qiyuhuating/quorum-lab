@@ -34,4 +34,17 @@ npm run benchmark
 
 The browser suite runs against the compiled `dist/` using the same portable static server shipped with the demo. Chromium, Firefox and WebKit run the same behavior tests. Benchmarks report host-specific wall time, virtual time and the tested seed count; they do not claim production distributed-system throughput.
 
-See [validation.md](validation.md) for recorded results and [benchmark.json](benchmark.json) for measured numbers. CI repeats the deterministic gates before Pages deployment; remote CI cannot run until the new GitHub repository exists.
+See [validation.md](validation.md) for recorded results and [benchmark.json](benchmark.json) for measured numbers. CI repeats these deterministic gates before GitHub Pages deployment.
+
+## v0.2 exhibit and debugging gates
+
+| Behavior             | Observable criterion                                                 | Evidence               |
+| -------------------- | -------------------------------------------------------------------- | ---------------------- |
+| Six real checkpoints | 2/5 uncommitted minority, 3/5 applied majority, 5/5 healed agreement | Engine + browser tests |
+| Event stepping       | Exactly the visible next live event executes; replay matches         | Engine + browser tests |
+| RPC visibility       | Real fields/status and delivery-time partition cause                 | Engine + browser tests |
+| Snapshot isolation   | Modifying observed payload cannot mutate protocol                    | Engine test            |
+| Desktop hierarchy    | All five log rows and six chapters fit 1440 × 900                    | Browser tests          |
+| Automatic guide      | Restarts, reaches final evidence and stops                           | Three browser engines  |
+| Reduced motion       | Animation disabled; keyboard chapters still work                     | Three browser engines  |
+| Baseline and branch  | Pinned observation persists; exported branch restores                | Browser tests          |

@@ -1,6 +1,8 @@
 import type { Action, ActionResult, ReplayDocument, Snapshot } from './types.ts';
+import type { PartitionStory } from './story.ts';
 
 export type Request =
+  | { type: 'story'; chapter: number }
   | { type: 'init'; seed: number; starter?: boolean }
   | { type: 'act'; action: Action }
   | { type: 'seek'; cursor: number }
@@ -13,4 +15,5 @@ export interface Response {
   result?: ActionResult;
   document?: ReplayDocument;
   error?: string;
+  story?: Omit<PartitionStory, 'document'>;
 }

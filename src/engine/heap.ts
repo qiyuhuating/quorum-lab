@@ -7,6 +7,9 @@ export class Heap<T extends { at: number; seq: number }> {
   peek(): T | undefined {
     return this.items[0];
   }
+  ordered(): T[] {
+    return [...this.items].sort((a, b) => a.at - b.at || a.seq - b.seq);
+  }
   push(item: T) {
     this.items.push(item);
     let i = this.items.length - 1;

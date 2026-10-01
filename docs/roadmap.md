@@ -1,32 +1,38 @@
 # Roadmap
 
-## v0.1 — implemented
+## v0.1 — delivered
 
-- Fixed five-node Raft model with independent elections and replication.
-- Current-term commit rule, new-leader no-op, stable-state crash/recovery.
-- Seeded discrete-event transport, symmetric partitions, latency and random loss.
-- Runtime safety observers, production Web Worker, node inspector and event stream.
-- Versioned experiment export/import, operation rewind and branch replay.
-- Automated protocol and browser checks, portable demo and GitHub Actions Pages workflow.
+- Independent fixed five-node Raft model, current-term commits, new-leader no-op and crash/recovery.
+- Seeded transport, symmetric partitions, jitter/loss, runtime safety observers and Worker.
+- Export/import, rewind/branch, tests, portable demo and gated GitHub Pages deployment.
 
-## v0.2 — debugging depth
+## v0.2 — delivered
 
-- Asymmetric link cuts and message duplication with delivery-level controls.
-- Packet inspection, single-message stepping and explanation of rejected RPCs.
-- Property-based schedule generation with automatic failure shrinking to a minimal replay.
-- Periodic replay checkpoints to make large historical seeks cheaper.
+- A spatial consensus observatory with an editorial frame, moving partition groups and live replica evidence.
+- Six real protocol checkpoints demonstrating minority refusal, majority progress and conflict repair.
+- Actual RPC payload inspection, delivery status and drop causes; next-event queue and exact event stepping.
+- Current-state baseline comparison, keyboard navigation and reduced-motion behavior.
+- 18 engine tests and 39 production browser tests, including full automatic-tour completion.
+- Updated production screenshots, interview material and portable demonstration release.
 
-## v0.3 — protocol depth
+## Next — fault exploration
 
-- Snapshot installation and log compaction, tested through interrupted transfer.
-- Pre-vote and check-quorum as explicit optional extensions; compare availability tradeoffs.
-- Client request deduplication and linearizable read protocols with documented assumptions.
-- Joint-consensus membership changes and safety monitors for configuration transitions.
+- Asymmetric link cuts and packet duplication with explicit delivery controls.
+- Generated adversarial schedules and failure shrinking into a minimal replay.
+- Explanations linking a rejected RPC to the receiver's conflicting prefix.
+- Replay checkpoint caching if measured historical rebuild cost warrants it.
 
-## v1 exploration — executable specification
+## Later — protocol depth
 
-- Differential traces against a separately implemented Raft reference model.
-- A small TLA+ or PlusCal model checked over bounded fault schedules.
-- Pluggable durable storage adapter with explicit fsync and recovery semantics, in a separate runtime.
+- Snapshot installation/log compaction under interrupted transfer.
+- Pre-vote and check-quorum with observable availability tradeoffs.
+- Client request deduplication, linearizable reads and documented assumptions.
+- Joint-consensus membership changes and configuration safety monitors.
 
-These are planned capabilities. The v0.1 implementation and validation report do not claim them.
+## Research direction
+
+- Differential traces against a separately implemented reference model.
+- A bounded TLA+ or PlusCal model with checked fault schedules.
+- Durable storage adapter with explicit fsync and recovery semantics in a separate runtime.
+
+Only the first two sections are implemented. Runtime observation and sampled testing do not establish a formal proof.

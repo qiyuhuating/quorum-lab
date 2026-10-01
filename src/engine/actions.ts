@@ -33,6 +33,7 @@ export function validateAction(value: unknown): Action {
     case 'recover':
       return { type: a.type, node: node(a.node) };
     case 'heal':
+    case 'step':
       return { type: a.type };
     case 'network':
       return {

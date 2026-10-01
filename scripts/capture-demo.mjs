@@ -1,66 +1,76 @@
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-
 const baseURL = process.env.DEMO_URL ?? 'http://127.0.0.1:4174/quorum-lab/';
 const output = resolve('docs/media');
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const context = await browser.newContext({
-  viewport: { width: 1440, height: 1180 },
-  deviceScaleFactor: 1,
-  recordVideo: { dir: output, size: { width: 1440, height: 1180 } },
+  viewport: { width: 1440, height: 900 },
+  recordVideo: { dir: output, size: { width: 1440, height: 900 } },
 });
 const page = await context.newPage();
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
 await page.goto(baseURL);
 await page.getByTestId('committed').filter({ hasText: '02' }).waitFor();
 await page.screenshot({ path: resolve(output, 'desktop.png') });
 await page.screenshot({ path: resolve(output, 'desktop-full.png'), fullPage: true });
-await page.waitForTimeout(1800);
-await page.getByRole('button', { name: /少数派隔离.*两个领导者/ }).click();
-await page.getByRole('status').filter({ hasText: '2/5' }).waitFor();
-await page.screenshot({ path: resolve(output, 'partition.png') });
-await page.waitForTimeout(2000);
-await page.getByLabel('写入键名').fill('signal');
-await page.getByLabel('写入值', { exact: true }).fill('majority-safe');
-await page.getByRole('button', { name: '提交提案' }).click();
-await page.getByLabel('运行速度').selectOption('2');
-await page.getByLabel('运行实验', { exact: true }).click();
-await page.getByTestId('committed').filter({ hasText: '03' }).waitFor();
+await page.waitForTimeout(1600);
+const names = ['共同的事实', '切开网络', '少数派的困局', '多数派继续', '重新连通', '日志收敛'];
+for (let i = 1; i < 6; i++) {
+  await page.getByRole('button', { name: `章节 ${i + 1} ${names[i]}` }).click();
+  await expect(page.getByRole('button', { name: `章节 ${i + 1} ${names[i]}` })).toHaveAttribute(
+    'aria-current',
+    'step',
+  );
+  await page.waitForTimeout(1300);
+  if (i === 2) await page.screenshot({ path: resolve(output, 'partition.png') });
+  if (i === 3) await page.screenshot({ path: resolve(output, 'majority.png') });
+  if (i === 5) await page.screenshot({ path: resolve(output, 'healed.png') });
+}
+await page.getByRole('button', { name: '章节 5 重新连通' }).click();
+await page.getByRole('button', { name: '固定当前状态作对照' }).click();
+for (let i = 0; i < 8; i++) await page.getByLabel('推进下一个协议事件').click();
+await page.locator('#workbench').scrollIntoViewIfNeeded();
+await page
+  .getByLabel(/检查消息 .* append N/)
+  .first()
+  .click();
 await page.waitForTimeout(1700);
-await page.getByRole('button', { name: '恢复全部链路' }).click();
-await page.waitForTimeout(2200);
-await page.getByLabel('暂停实验', { exact: true }).click();
-await page.getByTestId('state-machine').filter({ hasText: 'majority-safe' }).waitFor();
-await page.screenshot({ path: resolve(output, 'healed.png') });
+await page.locator('#workbench').screenshot({ path: resolve(output, 'forensics.png') });
+await page.getByRole('button', { name: '章节 6 日志收敛' }).click();
+await page.locator('#observatory').scrollIntoViewIfNeeded();
+await page.waitForTimeout(1800);
 const video = page.video();
-await page.waitForTimeout(1200);
 await context.close();
 await video.saveAs(resolve(output, 'demo.webm'));
 await video.delete();
-const mobile = await browser.newContext({
-  viewport: { width: 390, height: 844 },
-  deviceScaleFactor: 1,
-  isMobile: true,
-});
+const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
 const mp = await mobile.newPage();
 await mp.goto(baseURL);
 await mp.getByTestId('committed').filter({ hasText: '02' }).waitFor();
 await mp.screenshot({ path: resolve(output, 'mobile.png'), fullPage: true });
+await mp.getByRole('button', { name: '章节 3 少数派的困局' }).click();
+await mp.waitForTimeout(900);
+await mp.locator('#observatory').screenshot({ path: resolve(output, 'mobile-partition.png') });
 await mobile.close();
 await browser.close();
+if (errors.length) throw new Error(errors.join('\n'));
 await writeFile(
   resolve(output, 'capture-info.json'),
   JSON.stringify(
     {
-      viewport: '1440x1180',
+      version: '0.2.0',
+      viewport: '1440x900',
       mobile: '390x844',
       video: 'demo.webm',
       source: 'actual production application',
       stagedVisualEdits: false,
+      pageErrors: errors,
     },
     null,
     2,
-  ),
+  ) + '\n',
 );
-console.log('Captured desktop, mobile, partition, recovery and demo video.');
+console.log('Captured actual six-chapter protocol experiment, debugging, desktop and mobile.');

@@ -2,6 +2,7 @@ import type { Request, Response } from './bridge.ts';
 import { parseReplay, replay } from './replay.ts';
 import { Simulator } from './simulator.ts';
 import type { ReplayDocument } from './types.ts';
+import { buildPartitionStory } from './story.ts';
 
 let sim = new Simulator();
 let history: ReplayDocument | null = null;
@@ -10,8 +11,22 @@ self.onmessage = (event: MessageEvent<Request & { id: number }>) => {
   let result: Response['result'];
   let document: ReplayDocument | undefined;
   let error: string | undefined;
+  let story: Response['story'];
   try {
     switch (request.type) {
+      case 'story': {
+        if (!Number.isInteger(request.chapter) || request.chapter < 0 || request.chapter > 5)
+          throw new Error('实验章节无效。');
+        const built = buildPartitionStory();
+        sim = replay(built.document, built.checkpoints[request.chapter]);
+        history = built.document;
+        story = {
+          checkpoints: built.checkpoints,
+          oldLeader: built.oldLeader,
+          newLeader: built.newLeader,
+        };
+        break;
+      }
       case 'init': {
         sim = new Simulator(request.seed);
         history = null;
@@ -59,6 +74,7 @@ self.onmessage = (event: MessageEvent<Request & { id: number }>) => {
     result,
     document,
     error,
+    story,
   };
   self.postMessage(response);
 };
