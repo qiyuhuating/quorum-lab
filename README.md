@@ -108,7 +108,7 @@ tests/         协议、故障、安全与检查点证据
 e2e/           Chromium / Firefox / WebKit 生产交互验收
 scripts/       静态服务器、基准、真实演示采集
 docs/          架构、验收、演示素材与路线图
-.github/       CI 与 GitHub Pages 部署门禁
+.github/       CI、Pages 与带校验的自动版本发布
 ```
 
 [MIT](LICENSE) © 2026 qiyuhuating

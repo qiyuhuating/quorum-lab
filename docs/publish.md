@@ -2,18 +2,20 @@
 
 Repository: [qiyuhuating/quorum-lab](https://github.com/qiyuhuating/quorum-lab), public, MIT.
 
-The GitHub connector has no create-repository operation. The user's existing authenticated GitHub CLI login created the empty repository. The connector's contents/blob/tree/commit/ref operations upload the source and captured media. CLI administration handles Pages settings, repository metadata and release assets where the connector does not expose those operations. No new credentials or tokens are required.
+The connected GitHub plugin uploads source/media through blob, tree, commit and ref operations. It exposes no repository-create or release-admin operation. The initial repository was created with the user's existing GitHub CLI login. The v0.2 release is built and published inside GitHub Actions using its repository-scoped token.
 
-## Deployment pipeline
+## Verified pipeline
 
-1. Each pull request and push runs formatting, strict TypeScript checks, protocol tests and a production build.
-2. Chromium, Firefox and WebKit run the browser suite against that build. The 100-seed benchmark checks safety, convergence and exact replay.
-3. A successful `main` run uploads `dist/` as a Pages artifact.
-4. The deployment job publishes it using the dedicated Pages environment and OIDC token.
+1. Pull requests and pushes run formatting, strict types, 18 protocol tests and the production build.
+2. Chromium, Firefox and WebKit run 39 production browser checks. The 100-seed benchmark verifies safety, convergence and exact replay.
+3. Successful main verification publishes the Pages artifact through the OIDC Pages environment.
+4. After verification and deployment, the release job reads the version in package.json. An existing public release is left unchanged.
+5. For a new version, it rebuilds the exact revision and generates source ZIP, portable demo ZIP, a complete Git bundle and SHA-256 checksums.
+6. ZIP integrity, source-version agreement and Git bundle integrity are checked before publishing. An unfinished draft can be retried; the complete release is then made public.
 
-The repository's Pages Source is GitHub Actions. Deployment status is visible in [Actions](https://github.com/qiyuhuating/quorum-lab/actions). `docs/validation.md` records verified outcomes; a link to the live demo belongs in README only after its page and Worker load successfully.
+[Actions](https://github.com/qiyuhuating/quorum-lab/actions) exposes the results. [validation.md](validation.md) records tests; [live-check.json](live-check.json) records actual public-page behavior.
 
-## Reproduce from source
+## Reproduce
 
 ```sh
 git clone https://github.com/qiyuhuating/quorum-lab.git
@@ -24,10 +26,16 @@ npx playwright install --with-deps chromium firefox webkit
 npm run test:e2e
 ```
 
-To rerun an existing failed workflow, inspect its logs and repair the reported cause before retrying. Do not deploy an unchecked manual build to sidestep the verification gate.
+To package an existing production build, use Python 3 and Git:
 
-## Release materials
+```sh
+python scripts/package-release.py --out release
+```
 
-The v0.2.0 release uses [release-notes.md](release-notes.md). Portable demo and source archives are generated from the delivered revision. [demo-script.md](demo-script.md) provides a 90-second walkthrough. [profile-snippet.md](profile-snippet.md) is available for a later deliberate profile update.
+The checked-out revision must match local main. The portable demo needs only Node.js 22.12+ and a browser; Python and npm are not required to run it.
 
-All remote writes for this delivery are scoped to the new `quorum-lab` repository. `yihe-health` and the other audited repositories are independent.
+## Version publishing
+
+Bump package.json and package-lock.json, update release-notes.md, then commit to main through the connector. CI creates a public release only after all gates succeed. Existing public versions are immutable in this workflow. Repair failed checks before retrying; do not bypass the verification gate.
+
+All writes are scoped to quorum-lab. yihe-health and the other audited repositories remain independent.

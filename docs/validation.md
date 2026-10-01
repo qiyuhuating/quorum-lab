@@ -34,7 +34,11 @@ Screenshots and video in [media/](media/) come from the production app without s
 
 ## Deployment evidence
 
-The [public observatory](https://qiyuhuating.github.io/quorum-lab/) publishes only after formatting, protocol/browser tests and benchmark gates pass. [live-check.json](live-check.json) records the latest executed online browser check; its version identifies the checked release. Source and media are published through GitHub connector Git data operations.
+The v0.2 source passed verification and Pages deployment on Ubuntu in [run 36802348560](https://github.com/qiyuhuating/quorum-lab/actions/runs/36802348560). The [public observatory](https://qiyuhuating.github.io/quorum-lab/) returned HTTP 200 and passed actual six-chapter, automatic-guide, RPC and event-step checks. A new `live=deployment-verified-v0.2` proposal increased committed writes from three to four and appeared in the applied state machine. All four responsive widths fit, with zero page errors, failed requests or safety violations. [live-check.json](live-check.json) records the full result.
+
+The portable ZIP was unpacked into a separate directory and launched with its bundled Node server. Its production Worker completed minority and healed chapters with zero external requests. Source/demo ZIP checks and full Git-bundle verification passed locally. The automated release job repeats artifact integrity checks after the verification and Pages gates.
+
+Source and media are published through GitHub connector Git data operations. Published release versions are preserved; unfinished draft releases can resume uploads before becoming public.
 
 ## Limits
 

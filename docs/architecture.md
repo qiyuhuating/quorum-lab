@@ -93,3 +93,7 @@ Packets retain a cloned actual RPC payload, status and send/delivery drop cause.
 The queue exposes twelve still-active scheduled events sorted by `(at, seq)`. `step` processes one such event, consuming invalidated timers that precede it. Messages that will be dropped at delivery remain active events. Step actions extend the version-1 action union: v0.2 accepts v0.1 files, while v0.1 cannot interpret new step actions. Imports prevalidate advance durations and rebuild in a temporary simulator; runtime bounds also enforce elapsed time reached through steps before replacing the active experiment.
 
 Pinned baselines are copied observation snapshots. Comparison reports changed node internals and committed-write delta; it is not a linearizability certificate or causal proof. Rewind retains source history until a new action branches.
+
+## Automated artifacts
+
+After successful verification and Pages deployment, the version-aware release job packages the exact main revision. It verifies ZIP integrity, archived package version and complete Git bundle, then uploads checksums and artifacts to a draft release. The release becomes public only after all uploads succeed. Already published versions are skipped. The GitHub Actions token is scoped to repository contents for this job; Pages retains its own OIDC permissions.

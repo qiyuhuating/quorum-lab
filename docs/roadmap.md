@@ -36,3 +36,7 @@
 - Durable storage adapter with explicit fsync and recovery semantics in a separate runtime.
 
 Only the first two sections are implemented. Runtime observation and sampled testing do not establish a formal proof.
+
+## v0.2 release engineering
+
+Production CI also builds and checks source ZIP, a Node-only portable demo, a complete Git bundle and SHA-256 checksums. New versions are published automatically after verification and Pages deployment. Existing public release artifacts remain unchanged.
