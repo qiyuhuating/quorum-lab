@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 
 const version = JSON.parse(await readFile('package.json', 'utf8')).version;
 const url = process.env.DEMO_URL ?? 'https://qiyuhuating.github.io/quorum-lab/';
+const expectedRevision = process.env.GITHUB_SHA;
 const output = resolve(process.env.VALIDATION_OUTPUT ?? 'acceptance/live');
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
@@ -18,14 +19,19 @@ try {
           response = await page.goto(`${url}?acceptance=${version}-${Date.now()}`, {
             timeout: 15000,
           });
-          return await page.locator('.version').textContent({ timeout: 5000 });
+          const badge = await page.locator('.version').textContent({ timeout: 5000 });
+          const revision = await page.locator('meta[name="quorum-revision"]').getAttribute('content');
+          return (
+            badge === `v${version.split('.').slice(0, 2).join('.')}` &&
+            (!expectedRevision || revision === expectedRevision)
+          );
         } catch {
-          return 'not ready';
+          return false;
         }
       },
       { timeout: 90000, intervals: [2000, 5000] },
     )
-    .toBe(`v${version.split('.').slice(0, 2).join('.')}`);
+    .toBe(true);
   expect(response.status()).toBe(200);
   const external = [];
   const errors = [],
@@ -42,6 +48,11 @@ try {
   });
   // Reload the ready revision with monitoring enabled, including its Worker/assets.
   await page.reload();
+  if (expectedRevision)
+    await expect(page.locator('meta[name="quorum-revision"]')).toHaveAttribute(
+      'content',
+      expectedRevision,
+    );
   await expect(page.getByTestId('committed')).toHaveText('02');
   await page.getByRole('button', { name: '章节 3 少数派的困局' }).click();
   await expect(page.getByTestId('chapter-proof')).toHaveText(/2\/5.*0\/5.*2\/5/);
@@ -125,7 +136,8 @@ try {
   await page.screenshot({ path: resolve(output, 'live.png') });
   const report = {
     version,
-    revision: process.env.GITHUB_SHA ?? null,
+    revision: expectedRevision ?? null,
+    revisionMarkerVerified: !!expectedRevision,
     checkedAt: new Date().toISOString(),
     url,
     httpStatus: response.status(),
