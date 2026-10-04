@@ -23,3 +23,11 @@ The central exhibit is a six-chapter partition experiment. Each chapter is a che
 ## Scope
 
 Keep the independently implemented five-node Raft engine and existing hosting. Extend its observation and event controls. Do not add a backend, account system or unrelated product features. Runtime invariants remain testing instrumentation, not a formal proof.
+
+## v0.3: make each message explain itself
+
+v0.2 exposed packet payloads, but a reader still had to mentally execute the protocol to understand their effect. Symmetric partitions also hid the distinction between sending a request and receiving its acknowledgement. The next improvement therefore adds diagnostic evidence and directional faults to the existing laboratory.
+
+The causal slice keeps the route, verdict and explanation above two compact state cards. Changed values are marked in orange. A real `red-route` → `blue-route` tail replacement is legible next to commit-index changes; a rejected prefix instead leaves the log intact. The matrix uses green for enabled directions, orange for explicit cuts and hatching for partition constraints. Topology arrows point along disabled directions and curve away from the central evidence.
+
+Acceptance adds actual branch values, snapshot isolation, in-flight directional drops, independent reverse links, invalid-action atomicity, exact diagnostic replay, restored-node prefix rejection and keyboard matrix operation. The initial desktop hierarchy remains the same; the detailed debugging row sits in the protocol workbench.

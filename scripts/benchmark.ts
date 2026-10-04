@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import { Simulator } from '../src/engine/simulator.ts';
 import { replay } from '../src/engine/replay.ts';
-import type { NodeId } from '../src/engine/types.ts';
+import { NODE_IDS, type NodeId } from '../src/engine/types.ts';
 
 const samples: number[] = [];
 let transitions = 0,
@@ -21,6 +21,13 @@ for (let seed = 1; seed <= 100; seed++) {
         ],
       });
     if (i % 10 === 5) sim.act({ type: 'heal' });
+    if (i % 10 === 6 || i % 10 === 7)
+      sim.act({
+        type: 'link',
+        from: NODE_IDS[(seed + i) % 5],
+        to: NODE_IDS[(seed + i + 1) % 5],
+        enabled: false,
+      });
     if (i % 11 === 0) sim.act({ type: 'crash', node: `N${(i % 5) + 1}` as NodeId });
     if (i % 11 === 3)
       sim
@@ -63,6 +70,7 @@ console.log(
     {
       seeds: 100,
       virtualMsPerSeed: 49800,
+      faultModel: 'symmetric partitions + directed cuts + crash/recovery + jitter/loss',
       safetyViolations: 0,
       exactReplays: 100,
       transitions,

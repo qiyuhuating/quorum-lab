@@ -68,6 +68,9 @@ export function Topology({
         <filter id="bloom">
           <feGaussianBlur stdDeviation="6" />
         </filter>
+        <marker id="cut-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7" fill="none" stroke="#ff956c" />
+        </marker>
       </defs>
       <rect width="900" height="400" fill="url(#grid)" />
       <ellipse cx="450" cy="225" rx="430" ry="220" fill="url(#space)" />
@@ -128,6 +131,42 @@ export function Topology({
           </text>
         </g>
       )}
+      {snapshot.links
+        .filter((l) => snapshot.groups.some((g) => g.includes(l.from) && g.includes(l.to)))
+        .map((link) => {
+          const [x1, y1] = positions[link.from],
+            [x2, y2] = positions[link.to];
+          const dx = x2 - x1,
+            dy = y2 - y1,
+            length = Math.hypot(dx, dy);
+          const start = [x1 + (dx * 55) / length, y1 + (dy * 55) / length];
+          const end = [x2 - (dx * 65) / length, y2 - (dy * 65) / length];
+          const cx = 450 + ((x1 + x2) / 2 - 450) * 2 + (dy / length) * 16;
+          const cy = 212 + ((y1 + y2) / 2 - 212) * 2 - (dx / length) * 16;
+          return (
+            <g key={`${link.from}>${link.to}`} aria-label={`单向切断 ${link.from} 到 ${link.to}`}>
+              <path
+                d={`M${start.join(' ')} Q${cx} ${cy} ${end.join(' ')}`}
+                fill="none"
+                stroke="#ff956c"
+                strokeWidth="2"
+                strokeDasharray="5 6"
+                markerEnd="url(#cut-arrow)"
+                opacity=".85"
+              />
+              <text
+                x={start[0] * 0.25 + cx * 0.5 + end[0] * 0.25}
+                y={start[1] * 0.25 + cy * 0.5 + end[1] * 0.25 - 7}
+                fill="#ff956c"
+                fontSize="10"
+                fontFamily="monospace"
+                textAnchor="middle"
+              >
+                {link.from}→{link.to} ×
+              </text>
+            </g>
+          );
+        })}
       {snapshot.packets
         .filter((p) => p.deliverAt + 160 > snapshot.now)
         .slice(-36)

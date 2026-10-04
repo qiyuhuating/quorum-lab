@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "seed": 7,
+  "actions": [
+    {
+      "type": "advance",
+      "ms": 1800
+    },
+    {
+      "type": "crash",
+      "node": "N2"
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "probe0",
+      "value": "persisted"
+    },
+    {
+      "type": "advance",
+      "ms": 300
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "probe1",
+      "value": "persisted"
+    },
+    {
+      "type": "advance",
+      "ms": 300
+    },
+    {
+      "type": "crash",
+      "node": "N1"
+    },
+    {
+      "type": "advance",
+      "ms": 1800
+    },
+    {
+      "type": "recover",
+      "node": "N2"
+    }
+  ]
+}

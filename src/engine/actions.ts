@@ -35,6 +35,13 @@ export function validateAction(value: unknown): Action {
     case 'heal':
     case 'step':
       return { type: a.type };
+    case 'link': {
+      const from = node(a.from),
+        to = node(a.to);
+      if (from === to || typeof a.enabled !== 'boolean')
+        throw new Error('链路须连接两个不同节点，开关须为布尔值。');
+      return { type: a.type, from, to, enabled: a.enabled };
+    }
     case 'network':
       return {
         type: a.type,

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "seed": 7,
+  "actions": [
+    {
+      "type": "advance",
+      "ms": 1800
+    },
+    {
+      "type": "link",
+      "from": "N1",
+      "to": "N2",
+      "enabled": false
+    },
+    {
+      "type": "link",
+      "from": "N3",
+      "to": "N1",
+      "enabled": false
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "probe",
+      "value": "one-way"
+    },
+    {
+      "type": "advance",
+      "ms": 300
+    }
+  ]
+}

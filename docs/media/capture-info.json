@@ -1,9 +1,16 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "viewport": "1440x900",
   "mobile": "390x844",
   "video": "demo.webm",
   "source": "actual production application",
   "stagedVisualEdits": false,
+  "views": [
+    "six chapters",
+    "actual log-repaired transition",
+    "directed network cuts",
+    "RPC inspection",
+    "mobile causality"
+  ],
   "pageErrors": []
 }

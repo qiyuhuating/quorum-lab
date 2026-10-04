@@ -836,6 +836,358 @@ main {
   gap: 16px;
   align-items: start;
 }
+.causal-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: stretch;
+}
+.causal-panel {
+  position: relative;
+}
+.causal-panel::before {
+  content: '';
+  height: 3px;
+  position: absolute;
+  inset: 0 0 auto;
+  background: #507569;
+}
+.causal-panel.rejected::before,
+.causal-panel.dropped::before {
+  background: var(--orange);
+}
+.effect-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 22px 0;
+}
+.effect-route {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  font-family: var(--mono);
+}
+.effect-route b {
+  font-size: 21px;
+  font-weight: 500;
+}
+.effect-route span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.verdict {
+  padding: 5px 8px;
+  border: 1px solid #b5c9b8;
+  border-radius: 3px;
+  font: 8px var(--mono);
+  letter-spacing: 1px;
+  color: #426856;
+}
+.verdict.rejected,
+.verdict.dropped {
+  border-color: #e7b69b;
+  color: #a43e18;
+  background: #fff0e4;
+}
+.verdict.ignored {
+  color: var(--muted);
+  border-color: var(--line);
+}
+.effect-explanation {
+  padding: 14px 22px 19px;
+}
+.effect-explanation h4 {
+  font-size: 19px;
+  letter-spacing: -0.4px;
+  font-weight: 550;
+  margin-bottom: 8px;
+}
+.effect-explanation p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+  max-width: 66ch;
+}
+.effect-transition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
+  margin: 0 22px 20px;
+}
+.effect-caption {
+  display: block;
+  color: var(--muted);
+  font: 8px var(--mono);
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+.effect-state {
+  border: 1px solid var(--line);
+  background: #f1f0e7;
+  border-radius: 3px;
+  padding: 14px;
+}
+.effect-state > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  align-items: baseline;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.effect-state strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.effect-state span {
+  font: 9px var(--mono);
+}
+.effect-state dl {
+  padding: 7px 0;
+}
+.effect-state dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 7px;
+  font-size: 10px;
+  padding: 5px 0;
+}
+.effect-state dt {
+  color: var(--muted);
+}
+.effect-state dd {
+  font-family: var(--mono);
+}
+.effect-state p {
+  font: 10px/1.65 var(--mono);
+  border-top: 1px solid var(--line);
+  padding-top: 9px;
+  overflow-wrap: anywhere;
+}
+.effect-state small {
+  display: block;
+  color: var(--muted);
+  font-size: 7px;
+  margin-bottom: 4px;
+}
+.effect-state .changed {
+  color: #b3481f;
+}
+.effect-state .changed dd,
+.effect-state .changed b {
+  background: #ffe3c5;
+  border-radius: 2px;
+  padding: 1px 4px;
+}
+.effect-arrow {
+  align-self: center;
+  text-align: center;
+  color: #b3481f;
+  font-size: 29px;
+  font-weight: 300;
+}
+.effect-empty {
+  margin: 0 22px 24px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.effect-facts {
+  border-top: 1px solid var(--line);
+  padding: 12px 22px;
+}
+.effect-facts summary {
+  cursor: pointer;
+  font-size: 10px;
+}
+.effect-facts summary span {
+  font: 8px var(--mono);
+  color: var(--muted);
+  margin-left: 10px;
+}
+.effect-facts dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 22px;
+  padding: 14px 0 2px;
+}
+.effect-facts dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font: 9px var(--mono);
+}
+.effect-facts dt {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.effect-facts dd {
+  overflow-wrap: anywhere;
+}
+.network-intro,
+.network-footnote {
+  padding: 17px 22px 8px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.network-matrix {
+  display: grid;
+  grid-template-columns: 44px repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  padding: 12px 22px;
+}
+.matrix-row {
+  display: contents;
+}
+.matrix-axis {
+  font: 7px/1.6 var(--mono);
+  align-self: center;
+  color: var(--muted);
+}
+.matrix-label {
+  font: 10px var(--mono);
+  display: grid;
+  place-items: center;
+  min-height: 26px;
+}
+.matrix-link {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  min-height: 37px;
+  background: #e1eadc;
+  border: 1px solid #c7d6bc;
+  color: #496c4e;
+  font: 18px var(--mono);
+}
+.matrix-link.cut {
+  background: #ffe3c5;
+  color: #b3481f;
+  border-color: #dfaa84;
+}
+.matrix-link.partitioned {
+  background: repeating-linear-gradient(135deg, #eeeee5, #eeeee5 4px, #deded1 4px, #deded1 5px);
+  color: #868575;
+}
+.matrix-link.self {
+  border-color: transparent;
+  background: transparent;
+  color: #b1b1a1;
+}
+.matrix-legend {
+  display: flex;
+  gap: 13px;
+  padding: 5px 22px;
+  font-size: 9px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.matrix-legend span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.matrix-legend i {
+  width: 7px;
+  height: 7px;
+  background: #a7c293;
+}
+.matrix-legend span:nth-child(2) i {
+  background: var(--orange);
+}
+.matrix-legend span:nth-child(3) i {
+  background: #c6c6b7;
+}
+.network-footnote {
+  padding-top: 10px;
+  padding-bottom: 19px;
+  font-size: 9px;
+}
+.packet-filters {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #365247;
+}
+.packet-filters button {
+  padding: 6px 8px;
+  color: #8caf9d;
+  font-size: 9px;
+  border-color: #365247;
+}
+.packet-filters button[aria-pressed='true'] {
+  background: #cfe4bd;
+  border-color: #cfe4bd;
+  color: #183b2d;
+}
+.packet-empty {
+  padding: 24px 14px;
+  font-size: 10px;
+  line-height: 1.8;
+  color: #8caf9d;
+}
+.packet-detail .packet-decision {
+  font-size: 10px;
+  color: #e9d5af;
+  line-height: 1.8;
+}
+@media (max-width: 900px) {
+  .causal-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .network-matrix {
+    max-width: 390px;
+  }
+}
+@media (max-width: 480px) {
+  .effect-heading {
+    padding: 16px 14px 0;
+    gap: 6px;
+  }
+  .effect-route {
+    gap: 9px;
+  }
+  .effect-route b {
+    font-size: 17px;
+  }
+  .effect-route span {
+    font-size: 8px;
+  }
+  .effect-explanation {
+    padding: 14px;
+  }
+  .effect-explanation h4 {
+    font-size: 17px;
+  }
+  .effect-transition {
+    margin: 0 14px 16px;
+    grid-template-columns: minmax(0, 1fr) 23px minmax(0, 1fr);
+  }
+  .effect-state {
+    padding: 10px 8px;
+  }
+  .effect-state strong {
+    font-size: 12px;
+  }
+  .effect-state span {
+    font-size: 7px;
+  }
+  .effect-caption {
+    font-size: 7px;
+    letter-spacing: 0;
+  }
+  .effect-facts {
+    padding: 12px 14px;
+  }
+  .effect-facts summary span {
+    font-size: 7px;
+  }
+  .effect-facts dl {
+    gap: 8px 10px;
+  }
+}
 .panel {
   border: 1px solid var(--line);
   background: #f9f8f1;

@@ -10,11 +10,11 @@ Choose chapter 04. `blue-route` is committed and applied on three nodes. The two
 
 ## 35–55 seconds: inspect the moment before repair
 
-Choose chapter 05. Connectivity is restored, but virtual time remains 4.80 seconds and logs are still divergent. Fix the current state as a baseline, then execute the next protocol event. Inspect an actual AppendEntries payload, previous index/term and leader commit. The scheduler orders events by time and insertion sequence; it skips invalidated timers during event stepping.
+Choose chapter 05. Connectivity is restored, but virtual time remains 4.80 seconds and logs are still divergent. Fix the state as a baseline. Step until the causal slice says “截断冲突后缀”: the receiver tail changes `red-route` → `blue-route`, its term increases, and its commit/applied positions advance. Select “冲突修复” in RPC filters to inspect the exact historical message. The scheduler skips invalidated timers and orders active events by time and insertion sequence.
 
 ## 55–70 seconds: show convergence
 
-Choose chapter 06. All five logs agree and apply `blue-route`; the uncommitted `red-route` is removed. Open the protocol event stream to find conflict truncation. Explain the current-term commit rule and new-leader no-op.
+Choose chapter 06. All five logs agree and apply `blue-route`; the uncommitted `red-route` is removed. Cut N1→N2 in the matrix: the reverse cell remains enabled and the topology marks the disabled direction. Explain why an accepted RPC, an accepted client proposal and a committed entry are three different observations.
 
 ## 70–90 seconds: reproduce and show evidence
 
@@ -22,6 +22,6 @@ Export the experiment, reset and import it. Rewind to a checkpoint and stop a no
 
 ## Resume wording
 
-> 独立设计并发布 Quorum Lab 共识观测台：以 TypeScript 实现五节点 Raft 确定性事件引擎，通过 Web Worker 驱动选举、复制与故障恢复；将分区与冲突日志修复呈现为六幕可交互实验，支持真实 RPC 取证、逐事件调试、历史回放与分支对照；使用 18 项协议测试、39 项多浏览器验收和 GitHub Actions 发布门禁交付。
+> 独立设计并发布 Quorum Lab 共识观测台：以 TypeScript 实现五节点 Raft 确定性事件引擎，通过 Web Worker 驱动选举、复制与故障恢复；构建六幕真实协议实验、消息分支解释、接收端前后切片和单向链路故障，支持 RPC 取证与精确回放；使用 24 项协议测试、48 项多浏览器验收和 GitHub Actions 发布门禁交付。
 
 Use current executed counts from validation.md. Describe a tested protocol model, not a production database or formally verified system.

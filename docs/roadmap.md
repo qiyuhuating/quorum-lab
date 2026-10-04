@@ -15,11 +15,20 @@
 - 18 engine tests and 39 production browser tests, including full automatic-tour completion.
 - Updated production screenshots, interview material and portable demonstration release.
 
+## v0.3 — delivered
+
+- Actual receive-branch decisions with accepted/rejected/ignored/dropped verdicts.
+- Before/after node slices, including higher-term step-down, conflict truncation and commit advancement.
+- Directed link cuts with independent reverse links and delivery-time failure of in-flight packets.
+- Keyboard-operable 5×5 matrix, topology arrows and bounded RPC filters.
+- 24 engine tests and 48 three-browser checks; 20 asymmetric seed tests and 100 mixed-fault exact benchmark replays.
+- Recovering-lagging-node and asymmetric fixtures, production screenshots and updated release artifacts.
+
 ## Next — fault exploration
 
-- Asymmetric link cuts and packet duplication with explicit delivery controls.
+- Packet duplication and explicit delivery controls.
 - Generated adversarial schedules and failure shrinking into a minimal replay.
-- Explanations linking a rejected RPC to the receiver's conflicting prefix.
+- Minimal failure traces connecting multiple local event slices.
 - Replay checkpoint caching if measured historical rebuild cost warrants it.
 
 ## Later — protocol depth
@@ -35,8 +44,8 @@
 - A bounded TLA+ or PlusCal model with checked fault schedules.
 - Durable storage adapter with explicit fsync and recovery semantics in a separate runtime.
 
-Only the first two sections are implemented. Runtime observation and sampled testing do not establish a formal proof.
+Only v0.1–v0.3 and the release pipeline are implemented. Runtime observation and sampled testing do not establish a formal proof.
 
-## v0.2 release engineering
+## Release engineering
 
 Production CI also builds and checks source ZIP, a Node-only portable demo, a complete Git bundle and SHA-256 checksums. New versions are published automatically after verification and Pages deployment. Existing public release artifacts remain unchanged.

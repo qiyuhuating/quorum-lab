@@ -49,6 +49,7 @@ The UI's automatic target uses the highest-term leader visible to the simulator.
 - Mulberry32, seeded by an unsigned 32-bit integer, generates election times, message jitter and packet loss.
 - Message delay is the configured base ±50%. Messages can be reordered.
 - Partition groups disable links across groups in both directions. Delivery checks connectivity again, so packets already in flight can be dropped by a newly created partition.
+- Directed cuts independently disable one sender-to-receiver edge. Connectivity requires both shared partition membership and an enabled directed link. Partition operations preserve cuts; `heal` clears both. Send-time and delivery-time cut reasons are distinct.
 - Crash drops messages to an offline receiver. A packet already sent by a crashed node can still arrive, as with a message already on a wire.
 - Epoch counters invalidate stale timers after role changes and recovery.
 
@@ -76,7 +77,7 @@ Rewind rebuilds from the seed through an operation prefix inside the worker. The
 
 Experiment limits: 120 seconds of virtual time, 6,000 actions, 2 MB import, 400 recent trace events and 128 recent packets. Client proposals are refused when the target log reaches 256 entries; protocol no-ops can extend that threshold. These limits keep browser work bounded. Full action history, rather than the visible trace ring, drives replay.
 
-Fixed five-member clusters, symmetric partitions, crash/recovery and basic Raft are implemented. Membership changes, snapshot compaction, asymmetric links, packet duplication, real storage, client sessions and linearizable reads are roadmap items.
+Fixed five-member clusters, symmetric partitions, directed cuts, crash/recovery and basic Raft are implemented. Membership changes, snapshot compaction, packet duplication, real storage, client sessions and linearizable reads are roadmap items.
 
 ## Primary source
 
@@ -94,6 +95,18 @@ The queue exposes twelve still-active scheduled events sorted by `(at, seq)`. `s
 
 Pinned baselines are copied observation snapshots. Comparison reports changed node internals and committed-write delta; it is not a linearizability certificate or causal proof. Rewind retains source history until a new action branches.
 
+## Causal event slices and directed faults (v0.3)
+
+The RPC receiver returns a typed `Decision` from the branch it actually executes. It records accepted, rejected or ignored verdicts, a stable code, an explanation and the values used in that decision. Transport drops have their own verdict; a delivered packet can still be rejected by Raft. These explanations do not feed back into protocol decisions.
+
+For every active event, the scheduler records a compact before/after summary of the affected node: role, term, vote, log length/tail, commit and applied indices. A higher-term message's step-down is included because the before-state is captured before the receiver runs. Each delivered packet retains its decision and transition in the last-128 ring; `lastEffect` also exposes the latest timer or message event. Invalidated timers do not overwrite the visible last event. Returned views are cloned, including tail entries and decision facts.
+
+AppendEntries prefix rejection records the local prefix term (null when missing) and leaves the log unchanged. A successful repair records the first removed index and removed-entry count. These are different outcomes: the narrated partition experiment can repair directly through an already matching prefix. The lagging-node fixture demonstrates a separate rejection/backtracking path.
+
+`link` actions validate two different node IDs and a boolean switch before history mutation. Cuts are exported in canonical node order; both they and diagnostic state reproduce exactly from the seed/action history. v0.3 still reads version-1 files from earlier releases; earlier engines cannot interpret `link` actions. The matrix locks cross-partition cells because a directed switch cannot override the partition model. Crash/loss constraints also remain independent of matrix switches.
+
+The causal view explains one local event, not an exhaustive dependency graph, a linearizability proof or a global client guarantee. Packet filtering examines the bounded ring, so an old repair can disappear from the visible list while the full action history remains replayable.
+
 ## Automated artifacts
 
-After successful verification and Pages deployment, the version-aware release job packages the exact main revision. It verifies ZIP integrity, archived package version and complete Git bundle, then uploads checksums and artifacts to a draft release. The release becomes public only after all uploads succeed. Already published versions are skipped. The GitHub Actions token is scoped to repository contents for this job; Pages retains its own OIDC permissions.
+After verification and Pages deployment, a cloud browser job verifies the actual public build. The version-aware release job then packages the exact main revision and browser-tests the extracted portable ZIP. It checks ZIP integrity, archived package version and complete Git bundle. Both revision-stamped acceptance reports are downloadable and covered by checksums. Assets are uploaded to a draft release; the release becomes public after all gates and uploads succeed. Already published versions are skipped. The GitHub Actions token is scoped to repository contents for this job; Pages retains its own OIDC permissions.

@@ -1,19 +1,20 @@
-# Quorum Lab v0.2.0 — Consensus, under pressure
+# Quorum Lab v0.3.0 — Every message tells you why
 
 **[Live observatory](https://qiyuhuating.github.io/quorum-lab/)** · [Source and architecture](https://github.com/qiyuhuating/quorum-lab)
 
-A substantial redesign of the independent five-node Raft laboratory.
+A causal debugger and directional fault workbench for the independent five-node Raft laboratory.
 
-- Warm editorial framing, spatial node platforms, animated partition separation and live replica counts.
-- Six real protocol checkpoints: healthy state, partition, minority proposal, majority commit, reconnect, conflict repair.
-- Actual RPC payloads, delivery/drop causes, upcoming event queue and one-event deterministic stepping.
-- Inline proposal values, log divergence, node state, pinned baseline comparison and replay branching.
-- Keyboard interaction and reduced motion; all assets and simulation remain local to the browser.
-- Updated screenshots, actual production recording, interview walkthrough and portable demo.
-- Version-aware Actions release pipeline with checked source/demo ZIPs, complete Git bundle, checksums and resumable draft publication.
+- Actual RPC receive-branch explanations: accepted, rejected, ignored and transport-dropped verdicts with diagnostic values.
+- Before/after receiver slices for role, term, vote, log tail, commit and applied indices; historical packet inspection preserves its original slice.
+- Distinct prefix rejection, conflict truncation, old-term requests, stale confirmations and current-term commit advancement.
+- Independent directed cuts, a keyboard-operable 5×5 matrix and directional topology arrows. Cuts affect sends and in-flight deliveries; heal clears cuts and partitions.
+- Bounded RPC filters for exceptional outcomes and actual repairs; exported actions restore cuts and all diagnostic observations exactly.
+- Recovering-lagging-node and asymmetric experiment fixtures, actual production screenshots, recording and updated interview walkthrough.
+- Existing six-chapter exhibit, Worker isolation, replay branching, portable demo and gated version-aware release pipeline remain available.
+- Cloud-only publication gates now test the actual Pages URL and extracted portable ZIP, then attach both revision-stamped reports with SHA-256 checksums. The remaining pipeline can finish independently of the development computer.
 
-Validation: 18 engine tests, 39 production tests across Chromium/Firefox/WebKit, 100 exact full-snapshot benchmark replays, 523,843 runtime state checks and zero detected safety violations.
+Validation: 24 engine tests, 48 production tests across Chromium/Firefox/WebKit, 20 asymmetric seed cases and 100 exact mixed-fault benchmark replays. The benchmark executed 469,695 runtime checks and sent 372,137 simulated messages with zero detected safety violations.
 
-The source/media commit uses the connected GitHub blob/tree/commit/ref tools. The Actions release job performs publication after verification and Pages deployment. The public observatory has also passed an actual new committed write, six-chapter/guide completion, event/RPC inspection and all four responsive widths, with zero page errors or safety violations.
+The source/media commit uses the connected GitHub blob/tree/commit/ref tools. The Actions release job verifies artifact integrity and performs publication after verification and Pages deployment. The packaged source documents executed validation and the production check version explicitly.
 
-Scope: fixed membership, symmetric partitions and simulated stable storage. No real disk durability, member reconfiguration, exactly-once client semantics, linearizable reads or formal correctness proof.
+Scope: fixed membership, symmetric partitions, directed cuts and simulated stable storage. A causal slice explains one local event. No real disk durability, member reconfiguration, exactly-once client semantics, linearizable reads or formal correctness proof.

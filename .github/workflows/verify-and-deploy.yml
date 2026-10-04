@@ -55,8 +55,32 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  release:
+  live:
     needs: [verify, deploy]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify the published production application
+        run: node scripts/verify-demo.mjs
+        env:
+          VALIDATION_OUTPUT: acceptance/production
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-acceptance
+          path: acceptance/production/
+          retention-days: 30
+
+  release:
+    needs: [verify, deploy, live]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -97,6 +121,16 @@ jobs:
         run: |
           git update-ref refs/heads/main "$GITHUB_SHA"
           python3 scripts/package-release.py
+      - uses: actions/download-artifact@v4
+        if: steps.version.outputs.publish == 'true'
+        with:
+          name: production-acceptance
+          path: acceptance/production/
+      - name: Verify the extracted portable demonstration
+        if: steps.version.outputs.publish == 'true'
+        run: |
+          npx playwright install --with-deps chromium
+          node scripts/verify-portable.mjs
       - name: Publish complete release
         if: steps.version.outputs.publish == 'true'
         env:

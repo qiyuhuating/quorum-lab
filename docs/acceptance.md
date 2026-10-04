@@ -48,3 +48,16 @@ See [validation.md](validation.md) for recorded results and [benchmark.json](ben
 | Automatic guide      | Restarts, reaches final evidence and stops                           | Three browser engines  |
 | Reduced motion       | Animation disabled; keyboard chapters still work                     | Three browser engines  |
 | Baseline and branch  | Pinned observation persists; exported branch restores                | Browser tests          |
+
+## v0.3 causal debugging gates
+
+| Behavior                | Observable criterion                                                               | Evidence                          |
+| ----------------------- | ---------------------------------------------------------------------------------- | --------------------------------- |
+| Branch fidelity         | Vote/quorum/commit verdict comes from the executed branch with actual values       | Engine tests                      |
+| Rejected prefix         | Missing prefix produces rejection and leaves log/commit unchanged, then catches up | Engine + browser tests            |
+| Conflict slice          | Actual removed index exceeds prior commit; tail changes red → blue                 | Engine + browser tests            |
+| Diagnostic isolation    | Mutating a returned transition cannot alter stored evidence                        | Engine test                       |
+| Directional failure     | Cutting A→B leaves B→A enabled; in-flight packets get delivery-time cause          | Engine + browser tests            |
+| Atomic input validation | Self-links, invalid IDs and non-boolean switches change no state/history           | Engine test                       |
+| Diagnostic replay       | Full decisions, transitions and canonical cuts match exactly                       | Engine + 100-seed mixed benchmark |
+| Matrix accessibility    | Keyboard toggles a direction; partition constraints remain locked                  | Three browser engines             |

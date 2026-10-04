@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "checkedDate": "2026-10-01",
+  "timezone": "Asia/Singapore",
+  "url": "https://qiyuhuating.github.io/quorum-lab/",
+  "httpStatus": 200,
+  "initialWrites": 2,
+  "writesAfterStory": 3,
+  "writesAfterLiveProposal": 4,
+  "appliedValue": "deployment-verified-v0.2",
+  "minorityCopies": 2,
+  "majorityApplied": 3,
+  "healedApplied": 5,
+  "tourCompleted": true,
+  "eventStepping": true,
+  "actualRpcPayload": true,
+  "responsiveWidths": [
+    {
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "viewport": 1440,
+      "document": 1440
+    }
+  ],
+  "safety": "836 次检查 / 0 violations",
+  "pageErrors": [],
+  "failedRequests": [],
+  "badResponses": []
+}

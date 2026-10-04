@@ -31,6 +31,7 @@ export type Action =
   | { type: 'write'; node: NodeId; key: string; value: string }
   | { type: 'crash' | 'recover'; node: NodeId }
   | { type: 'partition'; groups: NodeId[][] }
+  | { type: 'link'; from: NodeId; to: NodeId; enabled: boolean }
   | { type: 'heal' }
   | { type: 'network'; latency: number; loss: number };
 export interface ReplayDocument {
@@ -53,8 +54,64 @@ export interface Packet {
   deliverAt: number;
   dropped: boolean;
   status: 'in-flight' | 'delivered' | 'dropped';
-  dropReason?: 'packet-loss' | 'partition-on-send' | 'receiver-offline' | 'partition-at-delivery';
+  dropReason?:
+    | 'packet-loss'
+    | 'partition-on-send'
+    | 'receiver-offline'
+    | 'partition-at-delivery'
+    | 'link-on-send'
+    | 'link-at-delivery';
   payload: Rpc;
+  decision?: Decision;
+  transition?: NodeTransition;
+}
+export interface Decision {
+  verdict: 'accepted' | 'rejected' | 'ignored' | 'dropped';
+  code:
+    | 'election-started'
+    | 'heartbeat-sent'
+    | 'vote-granted'
+    | 'stale-term'
+    | 'already-voted'
+    | 'log-behind'
+    | 'not-candidate'
+    | 'vote-denied'
+    | 'duplicate-vote'
+    | 'vote-counted'
+    | 'vote-quorum'
+    | 'log-prefix-mismatch'
+    | 'log-repaired'
+    | 'entries-accepted'
+    | 'heartbeat-accepted'
+    | 'not-leader'
+    | 'stale-rpc'
+    | 'commit-advanced'
+    | 'replica-acknowledged'
+    | 'prefix-backtrack'
+    | 'stale-rejection'
+    | 'transport-dropped';
+  title: string;
+  detail: string;
+  facts: Record<string, string | number | boolean | null>;
+}
+export interface NodeSummary {
+  role: Role;
+  term: number;
+  votedFor: NodeId | null;
+  commitIndex: number;
+  lastApplied: number;
+  logLength: number;
+  tail: Entry;
+}
+export interface NodeTransition {
+  node: NodeId;
+  before: NodeSummary;
+  after: NodeSummary;
+}
+export interface EventEffect {
+  event: ScheduledEvent;
+  decision: Decision;
+  transition: NodeTransition;
 }
 export type Rpc = { from: NodeId; to: NodeId; term: number } & (
   | { kind: 'vote'; lastIndex: number; lastTerm: number }
@@ -94,6 +151,7 @@ export interface Snapshot {
   seed: number;
   nodes: NodeView[];
   groups: NodeId[][];
+  links: { from: NodeId; to: NodeId }[];
   network: { latency: number; loss: number };
   metrics: Metrics;
   packets: Packet[];
@@ -103,6 +161,7 @@ export interface Snapshot {
   actionCount: number;
   queue: ScheduledEvent[];
   lastEvent?: ScheduledEvent;
+  lastEffect?: EventEffect;
 }
 export interface ActionResult {
   ok: boolean;

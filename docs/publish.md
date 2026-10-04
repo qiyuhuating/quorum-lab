@@ -2,18 +2,19 @@
 
 Repository: [qiyuhuating/quorum-lab](https://github.com/qiyuhuating/quorum-lab), public, MIT.
 
-The connected GitHub plugin uploads source/media through blob, tree, commit and ref operations. It exposes no repository-create or release-admin operation. The initial repository was created with the user's existing GitHub CLI login. The v0.2 release is built and published inside GitHub Actions using its repository-scoped token.
+The connected GitHub plugin uploads source/media through blob, tree, commit and ref operations. It exposes no repository-create or release-admin operation. The initial repository was created with the user's existing GitHub CLI login. Versioned releases are built and published inside GitHub Actions using its repository-scoped token.
 
 ## Verified pipeline
 
-1. Pull requests and pushes run formatting, strict types, 18 protocol tests and the production build.
-2. Chromium, Firefox and WebKit run 39 production browser checks. The 100-seed benchmark verifies safety, convergence and exact replay.
+1. Pull requests and pushes run formatting, strict types, 24 protocol tests and the production build.
+2. Chromium, Firefox and WebKit run 48 production browser checks. The 100-seed mixed-fault benchmark verifies safety, convergence and exact diagnostic replay.
 3. Successful main verification publishes the Pages artifact through the OIDC Pages environment.
-4. After verification and deployment, the release job reads the version in package.json. An existing public release is left unchanged.
-5. For a new version, it rebuilds the exact revision and generates source ZIP, portable demo ZIP, a complete Git bundle and SHA-256 checksums.
-6. ZIP integrity, source-version agreement and Git bundle integrity are checked before publishing. An unfinished draft can be retried; the complete release is then made public.
+4. A separate cloud job tests the actual published URL: chapters, causal repair/RPC, keyboard directed cut, export/import, automatic guide, four responsive widths and a new applied write. It uploads screenshots and a revision-stamped JSON report.
+5. After live acceptance passes, the release job reads package.json. A public version is left unchanged; a new version rebuilds the exact revision and generates source ZIP, portable demo ZIP, complete Git bundle and SHA-256 checksums.
+6. The demo ZIP is extracted to an isolated directory and started with its own bundled server. The same browser acceptance runs against the extracted assets, including the real Worker.
+7. Both acceptance reports join the downloadable assets and checksum manifest. ZIP integrity, source-version agreement and bundle integrity also must pass. An unfinished draft can be retried; only a complete release becomes public.
 
-[Actions](https://github.com/qiyuhuating/quorum-lab/actions) exposes the results. [validation.md](validation.md) records tests; [live-check.json](live-check.json) records actual public-page behavior.
+[Actions](https://github.com/qiyuhuating/quorum-lab/actions) exposes results and the `production-acceptance` artifact. The release includes `production-validation.json` and `portable-validation.json`. These jobs run on GitHub's hosted Ubuntu runners after the connector's push and do not depend on the development computer remaining powered on.
 
 ## Reproduce
 

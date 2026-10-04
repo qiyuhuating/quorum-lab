@@ -9,6 +9,8 @@ import {
 import type { Request } from '../engine/bridge.ts';
 import { Topology } from './Topology.tsx';
 import { useSimulator } from './useSimulator.ts';
+import { CausalPanel } from './CausalPanel.tsx';
+import { NetworkMatrix } from './NetworkMatrix.tsx';
 
 const time = (ms: number) => `${(ms / 1000).toFixed(2)}s`;
 const roles = { leader: '领导者', follower: '跟随者', candidate: '候选者' };
@@ -61,6 +63,8 @@ const dropLabels = {
   'partition-on-send': '发送时跨分区',
   'receiver-offline': '接收节点离线',
   'partition-at-delivery': '投递时跨分区',
+  'link-on-send': '发送时单向断链',
+  'link-at-delivery': '在途消息遇到单向断链',
 };
 function Mark() {
   return (
@@ -119,6 +123,7 @@ export function App() {
     [tour, setTour] = useState(false),
     [busy, setBusy] = useState(false);
   const [packetId, setPacketId] = useState<number | null>(null);
+  const [packetFilter, setPacketFilter] = useState('all');
   const [entryDetail, setEntryDetail] = useState('点击日志格，查看条目的任期、值与提交状态。');
   const [baseline, setBaseline] = useState<Snapshot | null>(null);
   const [help, setHelp] = useState(false);
@@ -129,7 +134,14 @@ export function App() {
     .filter((n) => n.role === 'leader' && !n.crashed)
     .sort((a, b) => b.term - a.term)[0];
   const inspected = snapshot?.nodes.find((n) => n.id === selected);
-  const packet = snapshot?.packets.find((p) => p.id === packetId) ?? snapshot?.packets.at(-1);
+  const filteredPackets =
+    snapshot?.packets.filter(
+      (p) =>
+        packetFilter === 'all' ||
+        (packetFilter === 'exception' && p.decision && p.decision.verdict !== 'accepted') ||
+        (packetFilter === 'repair' && p.decision?.code === 'log-repaired'),
+    ) ?? [];
+  const packet = filteredPackets.find((p) => p.id === packetId) ?? filteredPackets.at(-1);
   const evidence = snapshot ? facts(snapshot) : null;
   const pending =
     snapshot?.nodes.reduce(
@@ -198,6 +210,7 @@ export function App() {
   function free() {
     setChapter(null);
     setTour(false);
+    setPacketId(null);
   }
   function act(action: Action) {
     free();
@@ -292,7 +305,7 @@ export function App() {
         >
           SOURCE CODE ↗
         </a>
-        <span className="version">v0.2</span>
+        <span className="version">v0.3</span>
       </header>
       <main>
         <section className="intro">
@@ -343,8 +356,14 @@ export function App() {
                     <i className={running ? 'status-light active' : 'status-light'} />{' '}
                     {chapter === null ? 'LIVE EXPERIMENT' : 'THE PARTITION EXPERIMENT'}
                   </span>
-                  <span className={`field-status ${snapshot.groups.length > 1 ? 'fractured' : ''}`}>
-                    {snapshot.groups.length > 1 ? 'NETWORK PARTITIONED' : 'NETWORK CONNECTED'}
+                  <span
+                    className={`field-status ${snapshot.groups.length > 1 || snapshot.links.length ? 'fractured' : ''}`}
+                  >
+                    {snapshot.groups.length > 1
+                      ? 'NETWORK PARTITIONED'
+                      : snapshot.links.length
+                        ? `${snapshot.links.length} DIRECTED LINKS CUT`
+                        : 'NETWORK CONNECTED'}
                   </span>
                 </div>
                 <Topology snapshot={snapshot} selected={selected} onSelect={setSelected} />
@@ -638,6 +657,13 @@ export function App() {
                   每一项证据都来自正在运行的模拟器。
                 </p>
               </div>
+              <div className="causal-workbench">
+                <CausalPanel
+                  effect={snapshot.lastEffect}
+                  packet={packetId === null ? undefined : packet}
+                />
+                <NetworkMatrix snapshot={snapshot} onAction={act} />
+              </div>
               <div className="workbench-grid">
                 <section className="rpc-panel panel">
                   <div className="panel-heading">
@@ -657,26 +683,62 @@ export function App() {
                       COMMIT P95 <b>{snapshot.metrics.latencyP95}ms</b>
                     </span>
                   </div>
+                  <div className="packet-filters" role="group" aria-label="消息筛选">
+                    {[
+                      ['all', '全部消息'],
+                      ['exception', '拒绝与忽略'],
+                      ['repair', '冲突修复'],
+                    ].map(([filter, label]) => (
+                      <button
+                        key={filter}
+                        aria-pressed={packetFilter === filter}
+                        onClick={() => {
+                          setPacketFilter(filter);
+                          setPacketId(null);
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="rpc-body">
                     <div className="packet-list" aria-label="协议消息列表">
-                      {snapshot.packets
+                      {filteredPackets
                         .slice(-16)
                         .reverse()
                         .map((p) => (
                           <button
                             key={p.id}
                             className={`${packet?.id === p.id ? 'selected' : ''} ${p.status}`}
-                            onClick={() => setPacketId(p.id)}
+                            onClick={() => {
+                              setPacketId(p.id);
+                              setRunning(false);
+                              setTour(false);
+                            }}
                             aria-label={`检查消息 ${p.id} ${p.kind} ${p.from} 到 ${p.to}`}
                           >
                             <span>#{p.id}</span>
                             <b>
                               {p.from} → {p.to}
                             </b>
-                            <small>{p.kind}</small>
+                            <small>
+                              {p.kind}
+                              {p.decision?.verdict === 'rejected'
+                                ? ' / 拒绝'
+                                : p.decision?.code === 'log-repaired'
+                                  ? ' / 修复'
+                                  : ''}
+                            </small>
                             <i />
                           </button>
                         ))}
+                      {!filteredPackets.length && (
+                        <p className="packet-empty">
+                          最近 128 条消息中
+                          <br />
+                          暂无匹配记录。
+                        </p>
+                      )}
                     </div>
                     <div className="packet-detail">
                       {packet && (
@@ -701,6 +763,9 @@ export function App() {
                             {time(packet.sentAt)} → {time(packet.deliverAt)}
                             {packet.dropReason && ` / ${dropLabels[packet.dropReason]}`}
                           </p>
+                          {packet.decision && (
+                            <p className="packet-decision">{packet.decision.title}</p>
+                          )}
                           <pre data-testid="rpc-payload">
                             {JSON.stringify(packet.payload, null, 2)}
                           </pre>
@@ -833,7 +898,7 @@ export function App() {
                   </div>
                   <button
                     className="heal-button"
-                    disabled={snapshot.groups.length === 1}
+                    disabled={snapshot.groups.length === 1 && snapshot.links.length === 0}
                     onClick={() => act({ type: 'heal' })}
                   >
                     ⤨ 恢复全部链路

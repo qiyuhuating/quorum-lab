@@ -8,7 +8,7 @@
 
 An executable exhibit of distributed consensus.
 
-**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.2.0 Release](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.2.0)
+**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.3.0 Release](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.3.0)
 
 [![Verify and deploy](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml/badge.svg)](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml)
 
@@ -43,12 +43,17 @@ TypeScript · React · Web Worker · Independent Raft Engine
 
 - **逐事件推进**：执行下一条有效消息或定时器，跳过已经失效的定时器；查看即将发生的事件及顺序。
 - **RPC 取证**：检查实际 RequestVote / AppendEntries 请求与回复的完整载荷、任期、前缀索引、提交索引、投递状态与丢包原因。
+- **因果切片**：读取消息实际执行的接受、拒绝、忽略或丢弃分支；对比接收端处理前后的角色、任期、投票、提交位置和日志末条。筛选冲突修复，检查对应 RPC 的历史切片。
 - **日志与节点透视**：对比五份日志，查看最新提案值、待提交状态、投票、commit/applied index、状态机与领导者复制进度。
-- **故障注入**：停止或恢复节点，切成 2│3 分区，改变延迟与丢包；明确选择旧领导者作为写入目标。
+- **非对称故障**：在 5×5 链路矩阵中单独切断 N1→N2，反向通信独立；结合分区、节点崩溃、延迟与丢包。发送和投递都会检查连接，在途消息也受影响。
 - **回到过去**：操作滑块重建任意历史前缀，固定当前快照作为对照，改变下一步，再比较节点内部状态与提交数量。
 - **完整复现**：导出种子与操作序列，导入后恢复相同完整快照。历史原始未来保留到一次新的分支操作发生。
 
-![Actual RPC payload, event queue, node state and fault controls](docs/media/forensics.png)
+![Actual red-to-blue log repair and receiver state transition](docs/media/causality.png)
+
+![Directed cuts are visible on the live network](docs/media/asymmetric.png)
+
+想观察“拒绝追加 → 领导者回退 → 节点追上”的路径，可导入 [落后节点恢复实验](docs/experiments/lagging-node.json)，逐事件推进；[非对称故障实验](docs/experiments/asymmetric.json) 可直接重放单向链路故障。解释数据来自执行分支，不根据当前画面推测历史。
 
 ## 工程设计
 
@@ -62,6 +67,8 @@ TypeScript · React · Web Worker · Independent Raft Engine
 | Worker 中的检查点重建              | 导览、历史回放与协议运算离开界面线程                       |
 | 历史安全观察器                     | 监测选举唯一性、领导者完整性、日志匹配、应用安全与提交前缀 |
 | 有界消息取证与输入验证             | 保留最近 128 条真实 RPC；拒绝无效、超大或超长实验          |
+| 分支解释 + 接收端前后切片          | 区分前缀拒绝、实际截断、过期确认与提交推进                 |
+| 有方向的链路与两次连通检查         | 复现非对称故障，区分发送时和在途期间的消息丢弃             |
 | 三浏览器生产验收 + Pages 发布门禁  | 验证真实构建、Worker、仓库子路径、移动端与减少动画模式     |
 
 [架构与协议细节](docs/architecture.md) · [设计反思与验收目标](docs/redesign.md) · [验收结果](docs/validation.md) · [路线图](docs/roadmap.md)
@@ -93,9 +100,9 @@ npm run test:e2e
 npm run benchmark
 ```
 
-**18 个协议测试、39 个生产浏览器测试**；100 组额外故障实验执行 **523,843** 次状态检查，发送 **402,771** 条模拟消息，全部完整快照精确回放，未检测到安全违规。执行记录与测量见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
+**24 个协议测试、48 个生产浏览器测试**；另有 100 组混合故障实验，包含分区、单向断链、崩溃和丢包，执行 **469,695** 次状态检查，发送 **372,137** 条模拟消息，全部完整快照精确回放，未检测到安全违规。执行记录与测量见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
 
-实现固定五节点、对称分区、基本 Raft、模拟稳定存储与字符串状态机。真实磁盘 IO、快照压缩、成员变更、真实客户端发现、恰好一次语义和线性一致读尚未实现。自动写入目标为实验者的全局观察便利，不模拟真实客户端发现。
+实现固定五节点、对称分区与单向链路故障、基本 Raft、模拟稳定存储与字符串状态机。真实磁盘 IO、快照压缩、成员变更、真实客户端发现、恰好一次语义和线性一致读尚未实现。自动写入目标为实验者的全局观察便利，不模拟真实客户端发现。
 
 ## 展示材料
 
