@@ -1,8 +1,10 @@
-# Quorum Lab v0.3.0 — Every message tells you why
+# Quorum Lab v0.3.1 — Every message tells you why
 
 **[Live observatory](https://qiyuhuating.github.io/quorum-lab/)** · [Source and architecture](https://github.com/qiyuhuating/quorum-lab)
 
 A causal debugger and directional fault workbench for the independent five-node Raft laboratory.
+
+Stability patch: download anchors are attached to the document and their object URLs remain alive for 60 seconds before cleanup. CI now uses zero browser retries and adds 12 repeated WebKit export/import checks. v0.3.0 had one export timeout that passed on retry; this patch strengthens the product path and makes that outcome fail the gate.
 
 - Actual RPC receive-branch explanations: accepted, rejected, ignored and transport-dropped verdicts with diagnostic values.
 - Before/after receiver slices for role, term, vote, log tail, commit and applied indices; historical packet inspection preserves its original slice.

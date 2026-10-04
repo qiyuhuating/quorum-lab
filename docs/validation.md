@@ -50,3 +50,9 @@ Source and media are published through GitHub connector Git data operations. Pub
 ## Limits
 
 Fixed membership and simulated stable storage; no disk IO, membership changes, compaction, linearizable reads or exactly-once API. Sampled tests do not exhaustively prove all executions. Runtime safety observations collect evidence rather than formal verification.
+
+## Cloud stability follow-up — v0.3.1
+
+Recorded on **2026-10-04 (Asia/Singapore)**. The first v0.3.0 cloud run reported **47 passed and 1 flaky**: WebKit's directed-cut export timed out once, then passed its configured retry. All four jobs and the separate public/portable acceptance succeeded in [run 37209224340](https://github.com/qiyuhuating/quorum-lab/actions/runs/37209224340). This retry outcome is not represented as 48 first-attempt passes.
+
+The patch attaches the hidden download anchor to the document and keeps the blob URL available for 60 seconds before removing/revoking it. This addresses download startup lifetime; the original timeout alone does not establish a unique root cause. CI disables browser retries and repeats the WebKit export/import case twelve times. The final workflow and attached reports provide the executed result for that revision.

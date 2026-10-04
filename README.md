@@ -8,7 +8,7 @@
 
 An executable exhibit of distributed consensus.
 
-**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.3.0 Release](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.3.0)
+**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.3.1 Release](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.3.1)
 
 [![Verify and deploy](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml/badge.svg)](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml)
 
@@ -100,7 +100,7 @@ npm run test:e2e
 npm run benchmark
 ```
 
-**24 个协议测试、48 个生产浏览器测试**；另有 100 组混合故障实验，包含分区、单向断链、崩溃和丢包，执行 **469,695** 次状态检查，发送 **372,137** 条模拟消息，全部完整快照精确回放，未检测到安全违规。执行记录与测量见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
+**24 个协议测试、48 个生产浏览器测试**；另有 100 组混合故障实验，包含分区、单向断链、崩溃和丢包，执行 **469,695** 次状态检查，发送 **372,137** 条模拟消息，全部完整快照精确回放，未检测到安全违规。CI 关闭自动重试，并额外重复 12 次 WebKit 导出/恢复检查。执行记录与测量见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
 
 实现固定五节点、对称分区与单向链路故障、基本 Raft、模拟稳定存储与字符串状态机。真实磁盘 IO、快照压缩、成员变更、真实客户端发现、恰好一次语义和线性一致读尚未实现。自动写入目标为实验者的全局观察便利，不模拟真实客户端发现。
 

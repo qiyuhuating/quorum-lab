@@ -84,8 +84,14 @@ function download(text: string, name: string) {
   const a = document.createElement('a');
   a.href = url;
   a.download = name;
+  a.hidden = true;
+  document.body.appendChild(a);
   a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // Keep the URL alive while the browser starts its download.
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 60_000);
 }
 function facts(snapshot: Snapshot) {
   const red = snapshot.nodes.filter((n) => n.log.some((e) => e.value === 'red-route')).length;
