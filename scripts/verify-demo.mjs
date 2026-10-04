@@ -20,7 +20,8 @@ try {
             timeout: 15000,
           });
           const badge = await page.locator('.version').textContent({ timeout: 5000 });
-          const revision = await page.locator('meta[name="quorum-revision"]').getAttribute('content');
+          const marker = page.locator('meta[name="quorum-revision"]');
+          const revision = await marker.getAttribute('content');
           return (
             badge === `v${version.split('.').slice(0, 2).join('.')}` &&
             (!expectedRevision || revision === expectedRevision)
