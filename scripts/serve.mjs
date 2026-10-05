@@ -48,8 +48,9 @@ server.on('error', (error) => {
   process.exitCode = 1;
 });
 server.listen(port, '127.0.0.1', () => {
-  const address = `http://127.0.0.1:${port}/quorum-lab/`;
+  const address = `http://127.0.0.1:${server.address().port}/quorum-lab/`;
   console.log(`Quorum Lab: ${address}\nPress Ctrl+C to stop.`);
+  process.send?.({ type: 'quorum-ready', url: address });
   if (process.argv.includes('--open') && process.platform === 'win32')
     spawn('explorer.exe', [address], {
       detached: true,

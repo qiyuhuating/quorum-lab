@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "viewport": "1440x900",
   "mobile": "390x844",
   "video": "demo.webm",
@@ -10,7 +10,10 @@
     "actual log-repaired transition",
     "directed network cuts",
     "RPC inspection",
-    "mobile causality"
+    "mobile causality",
+    "vote echo with actual duplicate-vote decisions",
+    "distinct voter reaches quorum",
+    "mobile transport scheduling"
   ],
   "pageErrors": []
 }

@@ -59,7 +59,9 @@ export function CausalPanel({ effect, packet }: { effect?: EventEffect; packet?:
     <section
       className={`panel causal-panel ${decision?.verdict ?? ''}`}
       data-testid="causal-panel"
-      data-code={decision?.code ?? 'in-flight'}
+      aria-label="因果切片，可滚动"
+      tabIndex={0}
+      data-code={decision?.code ?? packet?.status ?? 'in-flight'}
       data-event-id={packet?.id ?? effect?.event.seq}
     >
       <div className="panel-heading">
@@ -74,14 +76,19 @@ export function CausalPanel({ effect, packet }: { effect?: EventEffect; packet?:
           <span>{at === undefined ? '等待事件' : `${(at / 1000).toFixed(3)}s`}</span>
         </div>
         <span className={`verdict ${decision?.verdict ?? ''}`}>
-          {decision ? verdicts[decision.verdict] : 'IN FLIGHT'}
+          {decision ? verdicts[decision.verdict] : packet?.status === 'held' ? 'HELD' : 'IN FLIGHT'}
         </span>
       </div>
       <div className="effect-explanation">
-        <h4>{decision?.title ?? '消息尚未进入接收端'}</h4>
+        <h4>
+          {decision?.title ??
+            (packet?.status === 'held' ? '消息已被暂停投递' : '消息尚未进入接收端')}
+        </h4>
         <p>
           {decision?.detail ??
-            '发送不等于接受。逐事件推进，观察这条消息在接收节点真正执行的协议分支。'}
+            (packet?.status === 'held'
+              ? '协议计时器继续运行。这条消息只有在释放后，才会检查链路并进入接收端。'
+              : '发送不等于接受。逐事件推进，观察这条消息在接收节点真正执行的协议分支。')}
         </p>
       </div>
       {transition ? (

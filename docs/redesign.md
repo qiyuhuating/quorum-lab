@@ -1,5 +1,7 @@
 # v0.2: from console to observatory
 
+The latest extension is documented in [v0.4 message scheduling](transport-design.md): deliberate delivery control, real RPC lineage and a visible independent-voter proof. Earlier design decisions remain below.
+
 ## Reflection
 
 The first release had real protocol behavior, but the presentation obscured it. The oversized introduction pushed the network below the fold. Equal-weight cards made faults, evidence and settings compete. A partition was a static preset with no explanation of what actually changed. Packet dots exposed no message contents. Test counts alone did not make the experience memorable.

@@ -3,6 +3,7 @@ import { parseReplay, replay } from './replay.ts';
 import { Simulator } from './simulator.ts';
 import type { ReplayDocument } from './types.ts';
 import { buildPartitionStory } from './story.ts';
+import { buildVoteEcho } from './echo.ts';
 
 let sim = new Simulator();
 let history: ReplayDocument | null = null;
@@ -14,6 +15,12 @@ self.onmessage = (event: MessageEvent<Request & { id: number }>) => {
   let story: Response['story'];
   try {
     switch (request.type) {
+      case 'echo': {
+        const built = buildVoteEcho();
+        sim = replay(built.document);
+        history = built.document;
+        break;
+      }
       case 'story': {
         if (!Number.isInteger(request.chapter) || request.chapter < 0 || request.chapter > 5)
           throw new Error('实验章节无效。');

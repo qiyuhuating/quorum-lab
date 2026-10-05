@@ -3,6 +3,7 @@ import { Heap } from './heap.ts';
 import {
   MAX_ACTIONS,
   MAX_LOG,
+  MAX_HELD,
   MAX_TIME,
   NODE_IDS,
   type Action,
@@ -31,6 +32,7 @@ type Event = { at: number; seq: number } & (
   | { type: 'election' | 'heartbeat'; node: NodeId; epoch: number }
   | { type: 'message'; message: Rpc; packet: Packet }
 );
+type MessageEvent = Extract<Event, { type: 'message' }>;
 const ROOT: Entry = { term: 0, id: 'root', key: null, value: null };
 const HEARTBEAT = 100;
 const QUORUM = 3;
@@ -69,6 +71,10 @@ export class Simulator {
   private actions: Action[] = [];
   private trace: Trace[] = [];
   private packets: Packet[] = [];
+  private pendingPackets = new Map<number, MessageEvent>();
+  private heldPackets = new Map<number, MessageEvent>();
+  private duplicates = 0;
+  private discarded = 0;
   private violations: string[] = [];
   private checked = 0;
   private lastEvent?: ScheduledEvent;
@@ -153,6 +159,7 @@ export class Simulator {
       'partition-at-delivery': '消息在途期间，两个节点被分到不同分区。',
       'link-on-send': '发送方向的链路已切断；反向链路独立。',
       'link-at-delivery': '消息在途期间，投递方向的链路被切断。',
+      manual: '消息被调度台主动丢弃；未进入接收端协议处理器。',
     };
     return decision(
       'dropped',
@@ -162,11 +169,15 @@ export class Simulator {
       { reason: packet.dropReason!, from: packet.from, to: packet.to },
     );
   }
-  private send(message: Rpc) {
-    const delay = Math.max(
-      1,
-      this.network.latency + Math.round((this.random() - 0.5) * this.network.latency),
-    );
+  private retainPacket(packet: Packet) {
+    if (this.packets.some((p) => p.id === packet.id)) return;
+    this.packets.push(packet);
+    if (this.packets.length > 128) this.packets.shift();
+  }
+  private send(message: Rpc, copy?: { original: number; delay: number }) {
+    const delay =
+      copy?.delay ??
+      Math.max(1, this.network.latency + Math.round((this.random() - 0.5) * this.network.latency));
     const loss = this.random() < this.network.loss;
     const packet: Packet = {
       id: ++this.sequence,
@@ -178,6 +189,7 @@ export class Simulator {
       dropped: loss || !this.connected(message.from, message.to) || this.get(message.to).crashed,
       status: 'in-flight',
       payload: structuredClone(message),
+      ...(copy ? { duplicateOf: copy.original } : {}),
     };
     if (packet.dropped) {
       packet.status = 'dropped';
@@ -191,19 +203,20 @@ export class Simulator {
       packet.decision = this.dropDecision(packet);
     }
     this.metrics.sent++;
-    this.packets.push(packet);
-    if (this.packets.length > 128) this.packets.shift();
+    this.retainPacket(packet);
     if (packet.dropped) {
       this.metrics.dropped++;
       return;
     }
-    this.queue.push({
+    const event: MessageEvent = {
       type: 'message',
       message: structuredClone(message),
       packet,
       at: packet.deliverAt,
       seq: ++this.sequence,
-    });
+    };
+    this.pendingPackets.set(packet.id, event);
+    this.queue.push(event);
   }
   private follower(n: Node, term: number) {
     if (term > n.term) {
@@ -599,6 +612,8 @@ export class Simulator {
     const before = summarize(n);
     let outcome: Decision;
     if (event.type === 'message') {
+      this.pendingPackets.delete(event.packet.id);
+      this.retainPacket(event.packet);
       if (
         !this.connected(event.message.from, event.message.to) ||
         this.get(event.message.to).crashed
@@ -652,7 +667,7 @@ export class Simulator {
     }
   }
   private active(event: Event): boolean {
-    if (event.type === 'message') return true;
+    if (event.type === 'message') return this.pendingPackets.get(event.packet.id) === event;
     const n = this.get(event.node);
     return (
       !n.crashed &&
@@ -720,9 +735,72 @@ export class Simulator {
       action.type === 'step' ? this.queue.ordered().find((e) => this.active(e)) : undefined;
     if (action.type === 'step' && (!next || next.at > MAX_TIME))
       throw new Error('120 秒范围内没有可执行事件，请重置或导出。');
+    const controlled =
+      'packet' in action
+        ? (this.pendingPackets.get(action.packet) ?? this.heldPackets.get(action.packet))
+        : undefined;
+    const source =
+      'packet' in action
+        ? (controlled?.packet ?? this.packets.find((p) => p.id === action.packet))
+        : undefined;
+    if (action.type === 'hold' && (!controlled || controlled.packet.status !== 'in-flight'))
+      throw new Error('只能暂停仍在途的消息。');
+    if (action.type === 'hold' && this.heldPackets.size >= MAX_HELD)
+      throw new Error('最多暂停 32 条消息，请先释放或丢弃。');
+    if (action.type === 'release' && !this.heldPackets.has(action.packet))
+      throw new Error('只能释放已暂停的消息。');
+    if (action.type === 'drop' && !controlled) throw new Error('只能丢弃在途或已暂停的消息。');
+    if (action.type === 'duplicate' && (!source || source.status === 'dropped'))
+      throw new Error('消息已丢弃或超出保留窗口，无法复制。');
+    if (
+      (action.type === 'release' || action.type === 'duplicate') &&
+      this.now + action.delay > MAX_TIME
+    )
+      throw new Error('消息的投递时间超过 120 秒实验上限。');
     this.actions.push(structuredClone(action));
     let result: ActionResult = { ok: true, message: '' };
     switch (action.type) {
+      case 'hold':
+        this.pendingPackets.delete(action.packet);
+        controlled!.packet.status = 'held';
+        this.heldPackets.set(action.packet, controlled!);
+        this.note('hold', `消息 #${action.packet} 暂停投递，协议计时器继续运行。`);
+        break;
+      case 'release': {
+        this.heldPackets.delete(action.packet);
+        const packet = controlled!.packet;
+        this.retainPacket(packet);
+        packet.status = 'in-flight';
+        packet.deliverAt = this.now + action.delay;
+        const event: MessageEvent = { ...controlled!, at: packet.deliverAt, seq: ++this.sequence };
+        this.pendingPackets.set(packet.id, event);
+        this.queue.push(event);
+        this.note('release', `消息 #${packet.id} 将在 ${action.delay}ms 后投递。`);
+        break;
+      }
+      case 'drop': {
+        this.pendingPackets.delete(action.packet);
+        this.heldPackets.delete(action.packet);
+        const packet = controlled!.packet;
+        this.retainPacket(packet);
+        packet.status = 'dropped';
+        packet.dropped = true;
+        packet.dropReason = 'manual';
+        packet.deliverAt = this.now;
+        packet.decision = this.dropDecision(packet);
+        this.metrics.dropped++;
+        this.discarded++;
+        this.note('drop', `消息 #${packet.id} 被主动丢弃，接收端未执行 RPC。`);
+        break;
+      }
+      case 'duplicate':
+        this.send(structuredClone(source!.payload), {
+          original: source!.duplicateOf ?? source!.id,
+          delay: action.delay,
+        });
+        this.duplicates++;
+        this.note('duplicate', `复制消息 #${source!.id}，载荷保持不变，独立执行网络投递。`);
+        break;
       case 'step': {
         let event: Event;
         do {
@@ -837,6 +915,15 @@ export class Simulator {
       network: this.network,
       metrics: { ...this.metrics, latencyP50: percentile(0.5), latencyP95: percentile(0.95) },
       packets: this.packets,
+      transport: {
+        held: [...this.heldPackets.values()].map((e) => e.packet),
+        pending: [...this.pendingPackets.values()]
+          .sort((a, b) => a.at - b.at || a.seq - b.seq)
+          .slice(0, 12)
+          .map((e) => e.packet),
+        duplicates: this.duplicates,
+        discarded: this.discarded,
+      },
       trace: this.trace,
       violations: this.violations,
       checked: this.checked,

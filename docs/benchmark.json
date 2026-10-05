@@ -1,14 +1,20 @@
 {
   "seeds": 100,
   "virtualMsPerSeed": 49800,
-  "faultModel": "symmetric partitions + directed cuts + crash/recovery + jitter/loss",
+  "faultModel": "partitions + directed cuts + crash/recovery + jitter/loss + hold/release/duplicate/drop",
+  "packetActions": {
+    "holds": 800,
+    "releases": 800,
+    "duplicates": 800,
+    "discards": 898
+  },
   "safetyViolations": 0,
   "exactReplays": 100,
-  "transitions": 469695,
-  "messagesSent": 372137,
-  "simulationMedianMs": 98.62,
-  "simulationP95Ms": 115.14,
-  "replayMeanMs": 45.54,
+  "transitions": 463370,
+  "messagesSent": 365633,
+  "simulationMedianMs": 153.89,
+  "simulationP95Ms": 197.79,
+  "replayMeanMs": 51.85,
   "node": "v24.16.0",
   "platform": "win32",
   "note": "Wall-time numbers are local measurements, not a distributed-system throughput benchmark."

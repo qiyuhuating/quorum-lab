@@ -98,6 +98,52 @@ try {
   await expect(reverse).toHaveAttribute('aria-pressed', 'false');
   await page.getByRole('button', { name: '恢复全部链路' }).click();
   await expect(page.getByTestId('cut-count')).toHaveText('0 CUTS');
+  await page.getByRole('button', { name: '载入选票回声' }).click();
+  await expect(page.getByTestId('unique-votes')).toHaveText('2 / 3');
+  await expect(page.getByTestId('held-count')).toHaveText('3');
+  await expect(page.getByTestId('duplicate-count')).toHaveText('2');
+  await expect(causal).toHaveAttribute('data-code', 'duplicate-vote');
+  await expect(causal).toContainText('IGNORED');
+  await page.locator('.transport-console').screenshot({ path: resolve(output, 'transport.png') });
+  const echoDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: '导出实验' }).click();
+  const echoPath = await (await echoDownload).path();
+  const echoDocument = JSON.parse(await readFile(echoPath, 'utf8'));
+  expect(echoDocument.actions.filter((a) => a.type === 'hold')).toHaveLength(4);
+  expect(echoDocument.actions.filter((a) => a.type === 'duplicate')).toHaveLength(2);
+  await page.getByRole('button', { name: '重置' }).click();
+  await expect(page.getByTestId('held-count')).toHaveText('0');
+  await page.getByLabel('导入实验文件').setInputFiles(echoPath);
+  await expect(page.getByTestId('held-count')).toHaveText('3');
+  await expect(page.getByTestId('unique-votes')).toHaveText('2 / 3');
+  await page
+    .getByLabel(/调度消息 .* held/)
+    .first()
+    .click();
+  await page.getByLabel('投递延迟毫秒').fill('1');
+  await page.getByRole('button', { name: /^释放消息/ }).click();
+  await expect(page.getByTestId('held-count')).toHaveText('2');
+  await page.getByLabel('推进下一个协议事件').click();
+  await expect(page.getByTestId('unique-votes')).toHaveText('3 / 3');
+  await expect(causal).toHaveAttribute('data-code', 'vote-quorum');
+  await page
+    .getByLabel(/调度消息 .* in-flight/)
+    .first()
+    .click();
+  await page.getByRole('button', { name: /^暂停消息/ }).click();
+  await expect(page.getByTestId('held-count')).toHaveText('3');
+  await page.getByRole('button', { name: /^丢弃消息/ }).click();
+  await expect(page.getByTestId('held-count')).toHaveText('2');
+  await expect(page.getByTestId('discard-count')).toHaveText('1');
+  await expect(causal).toHaveAttribute('data-code', 'transport-dropped');
+  await expect(causal).toContainText('主动丢弃');
+  await page.getByLabel('导入实验文件').setInputFiles({
+    name: 'stale-ack.json',
+    mimeType: 'application/json',
+    buffer: await readFile('docs/experiments/stale-ack.json'),
+  });
+  await expect(causal).toHaveAttribute('data-code', 'stale-rpc');
+  await expect(page.getByTestId('event-transition').locator('.changed')).toHaveCount(0);
   await page.getByRole('button', { name: '章节 6 日志收敛' }).click();
   await expect(page.getByTestId('chapter-proof')).toHaveText(/0\/5.*5\/5.*5\/5/);
   await page.getByRole('button', { name: '自动导览' }).click();
@@ -155,6 +201,12 @@ try {
     keyboardDirectedCut: true,
     cutExportImport: true,
     reverseLinkIndependent: true,
+    voteEchoUniqueVotes: 2,
+    duplicateVoteReplies: 2,
+    distinctVoterQuorum: true,
+    heldExportImport: true,
+    manualPacketDiscard: true,
+    staleAcknowledgementIgnored: true,
     responsiveWidths: widths,
     safety,
     pageErrors: errors,

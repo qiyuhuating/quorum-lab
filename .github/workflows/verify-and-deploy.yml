@@ -30,6 +30,10 @@ jobs:
       - run: npm run test:e2e
       - name: Repeat WebKit export and replay acceptance
         run: npx playwright test e2e/causality.spec.ts --grep "one-way cuts" --project=webkit --repeat-each=12 --workers=1 --reporter=line --output=test-results/export-stability
+      - name: Repeat WebKit held-packet export and replay acceptance
+        run: npx playwright test e2e/transport.spec.ts --grep "exported echo" --project=webkit --repeat-each=12 --workers=1 --reporter=line --output=test-results/held-stability
+      - name: Repeat WebKit live fault-control layout acceptance
+        run: npx playwright test e2e/lab.spec.ts --grep "minority retains" --project=webkit --repeat-each=12 --workers=1 --reporter=line --output=test-results/layout-stability
       - run: npm run benchmark --silent
       - uses: actions/upload-artifact@v4
         if: always()

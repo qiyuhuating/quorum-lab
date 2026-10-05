@@ -59,12 +59,30 @@ await expect(page.getByTestId('clock')).toHaveText('6.50s');
 await page.locator('#observatory').scrollIntoViewIfNeeded();
 await page.locator('#observatory').screenshot({ path: resolve(output, 'asymmetric.png') });
 await page.waitForTimeout(1800);
+await page.getByRole('button', { name: '载入选票回声' }).click();
+await expect(page.getByTestId('unique-votes')).toHaveText('2 / 3');
+await page.locator('.transport-console').scrollIntoViewIfNeeded();
+await page.locator('.transport-console').screenshot({ path: resolve(output, 'transport.png') });
+await page.getByTestId('causal-panel').screenshot({ path: resolve(output, 'echo-causality.png') });
+await page.waitForTimeout(1800);
+await page
+  .getByLabel(/调度消息 .* held/)
+  .first()
+  .click();
+await page.getByLabel('投递延迟毫秒').fill('1');
+await page.getByRole('button', { name: /^释放消息/ }).click();
+await expect(page.getByTestId('held-count')).toHaveText('2');
+await page.getByLabel('推进下一个协议事件').click();
+await expect(page.getByTestId('unique-votes')).toHaveText('3 / 3');
+await page.locator('.transport-console').screenshot({ path: resolve(output, 'echo-quorum.png') });
+await page.waitForTimeout(1800);
 const video = page.video();
 await context.close();
 await video.saveAs(resolve(output, 'demo.webm'));
 await video.delete();
 const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
 const mp = await mobile.newPage();
+mp.on('pageerror', (e) => errors.push(e.message));
 await mp.goto(baseURL);
 await mp.getByTestId('committed').filter({ hasText: '02' }).waitFor();
 await mp.screenshot({ path: resolve(output, 'mobile.png'), fullPage: true });
@@ -74,6 +92,11 @@ await mp.locator('#observatory').screenshot({ path: resolve(output, 'mobile-part
 await mp.getByRole('button', { name: '章节 5 重新连通' }).click();
 await stepUntilRepair(mp);
 await mp.locator('.causal-workbench').screenshot({ path: resolve(output, 'mobile-causality.png') });
+await mp.getByRole('button', { name: '载入选票回声' }).click();
+await expect(mp.getByTestId('unique-votes')).toHaveText('2 / 3');
+await mp
+  .locator('.transport-console')
+  .screenshot({ path: resolve(output, 'mobile-transport.png') });
 await mobile.close();
 await browser.close();
 if (errors.length) throw new Error(errors.join('\n'));
@@ -93,6 +116,9 @@ await writeFile(
         'directed network cuts',
         'RPC inspection',
         'mobile causality',
+        'vote echo with actual duplicate-vote decisions',
+        'distinct voter reaches quorum',
+        'mobile transport scheduling',
       ],
       pageErrors: errors,
     },

@@ -2,6 +2,7 @@ export const NODE_IDS = ['N1', 'N2', 'N3', 'N4', 'N5'] as const;
 export const MAX_TIME = 120_000;
 export const MAX_ACTIONS = 6000;
 export const MAX_LOG = 256;
+export const MAX_HELD = 32;
 export type NodeId = (typeof NODE_IDS)[number];
 export type Role = 'follower' | 'candidate' | 'leader';
 export interface Entry {
@@ -28,6 +29,8 @@ export interface NodeView {
 export type Action =
   | { type: 'advance'; ms: number }
   | { type: 'step' }
+  | { type: 'hold' | 'drop'; packet: number }
+  | { type: 'release' | 'duplicate'; packet: number; delay: number }
   | { type: 'write'; node: NodeId; key: string; value: string }
   | { type: 'crash' | 'recover'; node: NodeId }
   | { type: 'partition'; groups: NodeId[][] }
@@ -53,14 +56,16 @@ export interface Packet {
   sentAt: number;
   deliverAt: number;
   dropped: boolean;
-  status: 'in-flight' | 'delivered' | 'dropped';
+  status: 'in-flight' | 'held' | 'delivered' | 'dropped';
+  duplicateOf?: number;
   dropReason?:
     | 'packet-loss'
     | 'partition-on-send'
     | 'receiver-offline'
     | 'partition-at-delivery'
     | 'link-on-send'
-    | 'link-at-delivery';
+    | 'link-at-delivery'
+    | 'manual';
   payload: Rpc;
   decision?: Decision;
   transition?: NodeTransition;
@@ -155,6 +160,7 @@ export interface Snapshot {
   network: { latency: number; loss: number };
   metrics: Metrics;
   packets: Packet[];
+  transport: { held: Packet[]; pending: Packet[]; duplicates: number; discarded: number };
   trace: Trace[];
   violations: string[];
   checked: number;

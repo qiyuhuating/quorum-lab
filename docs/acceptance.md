@@ -20,6 +20,22 @@ The release is accepted when all checks below execute against the production bui
 | Responsive layout       | Document width fits 320, 390, 768 and 1440 px viewports                               | Browser tests                    |
 | Pages-compatible assets | Worker and assets load from `/quorum-lab/`; no external asset requests                | Browser tests                    |
 
+## Adversarial delivery acceptance (v0.4)
+
+| Behavior                 | Observable pass criterion                                                      | Evidence                    |
+| ------------------------ | ------------------------------------------------------------------------------ | --------------------------- |
+| Held delivery            | Remains held beyond original deadline; receiver runs only after release        | Engine + browsers           |
+| Schedule identity        | Releasing to the original deadline executes once                               | Engine                      |
+| Vote duplication         | Original + two copies contribute one peer; distinct voter elects               | Engine + three browsers     |
+| Delayed confirmation     | Late AppendResponse executes stale guard; replication/receiver state unchanged | Engine + browser fixture    |
+| Manual discard           | Real manual cause; receiver never invoked; counted once                        | Engine + browsers           |
+| Delivery faults          | Release still encounters directed cuts and offline receivers                   | Engine                      |
+| Held retention           | Original payload remains after 128-record history eviction                     | Engine                      |
+| Atomic validation        | Unavailable references and 32-held bound change no state/history               | Engine + browser import     |
+| Exact diagnostics        | Held storage, copies, provenance and decisions match on replay                 | Engine + 100-seed benchmark |
+| Accessible controls      | Keyboard release and no document overflow at four widths                       | Three browsers              |
+| Public/portable artifact | New controls pass against exact revision before publication                    | Cloud live + release jobs   |
+
 ## Commands
 
 ```sh

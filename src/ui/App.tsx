@@ -11,6 +11,7 @@ import { Topology } from './Topology.tsx';
 import { useSimulator } from './useSimulator.ts';
 import { CausalPanel } from './CausalPanel.tsx';
 import { NetworkMatrix } from './NetworkMatrix.tsx';
+import { TransportPanel } from './TransportPanel.tsx';
 
 const time = (ms: number) => `${(ms / 1000).toFixed(2)}s`;
 const roles = { leader: '领导者', follower: '跟随者', candidate: '候选者' };
@@ -65,6 +66,7 @@ const dropLabels = {
   'partition-at-delivery': '投递时跨分区',
   'link-on-send': '发送时单向断链',
   'link-at-delivery': '在途消息遇到单向断链',
+  manual: '调度台主动丢弃',
 };
 function Mark() {
   return (
@@ -147,7 +149,11 @@ export function App() {
         (packetFilter === 'exception' && p.decision && p.decision.verdict !== 'accepted') ||
         (packetFilter === 'repair' && p.decision?.code === 'log-repaired'),
     ) ?? [];
-  const packet = filteredPackets.find((p) => p.id === packetId) ?? filteredPackets.at(-1);
+  const packet =
+    snapshot?.packets.find((p) => p.id === packetId) ??
+    snapshot?.transport.held.find((p) => p.id === packetId) ??
+    snapshot?.transport.pending.find((p) => p.id === packetId) ??
+    filteredPackets.at(-1);
   const evidence = snapshot ? facts(snapshot) : null;
   const pending =
     snapshot?.nodes.reduce(
@@ -241,6 +247,34 @@ export function App() {
     setBaseline(null);
     await execute({ type: 'init', seed: Number(seed) });
   }
+  async function controlPacket(action: Action) {
+    setRunning(false);
+    setTour(false);
+    setChapter(null);
+    setBusy(true);
+    const response = await execute({ type: 'act', action });
+    if (response && 'packet' in action) {
+      setPacketId(
+        action.type === 'duplicate' ? response.snapshot.packets.at(-1)!.id : action.packet,
+      );
+    }
+    setBusy(false);
+  }
+  async function openEcho() {
+    free();
+    setRunning(false);
+    setBusy(true);
+    setBaseline(null);
+    setPacketFilter('all');
+    const response = await execute({ type: 'echo' });
+    if (response) {
+      setSeed('7');
+      setSelected(response.snapshot.nodes.find((n) => n.role === 'candidate')!.id);
+      setPacketId(response.snapshot.packets.at(-1)!.id);
+      setNotice('同一节点的三份回复，只贡献一票。释放另一节点的选票，再逐事件推进。');
+    }
+    setBusy(false);
+  }
   async function preset(kind: string) {
     free();
     setRunning(false);
@@ -299,7 +333,7 @@ export function App() {
             观测台 <sup>01</sup>
           </a>
           <a href="#workbench">
-            协议工作台 <sup>02</sup>
+            消息调度与取证 <sup>02</sup>
           </a>
           <button onClick={() => setHelp(true)}>协议说明 ↗</button>
         </nav>
@@ -311,7 +345,7 @@ export function App() {
         >
           SOURCE CODE ↗
         </a>
-        <span className="version">v0.3</span>
+        <span className="version">v0.4</span>
       </header>
       <main>
         <section className="intro">
@@ -663,6 +697,18 @@ export function App() {
                   每一项证据都来自正在运行的模拟器。
                 </p>
               </div>
+              <TransportPanel
+                snapshot={snapshot}
+                selected={packetId === null ? undefined : packet}
+                busy={busy}
+                onSelect={(p) => {
+                  setPacketId(p.id);
+                  setRunning(false);
+                  setTour(false);
+                }}
+                onAction={controlPacket}
+                onEcho={openEcho}
+              />
               <div className="causal-workbench">
                 <CausalPanel
                   effect={snapshot.lastEffect}
@@ -772,6 +818,11 @@ export function App() {
                           {packet.decision && (
                             <p className="packet-decision">{packet.decision.title}</p>
                           )}
+                          {packet.duplicateOf && (
+                            <p className="packet-decision">
+                              原始消息 #{packet.duplicateOf} 的完整载荷副本
+                            </p>
+                          )}
                           <pre data-testid="rpc-payload">
                             {JSON.stringify(packet.payload, null, 2)}
                           </pre>
@@ -857,6 +908,7 @@ export function App() {
                   )}
                   <div className="baseline">
                     <button
+                      disabled={busy}
                       onClick={() => setBaseline(baseline ? null : structuredClone(snapshot))}
                     >
                       {baseline ? '× 清除对照' : '◎ 固定当前状态作对照'}

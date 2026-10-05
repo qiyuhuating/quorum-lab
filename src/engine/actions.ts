@@ -35,6 +35,16 @@ export function validateAction(value: unknown): Action {
     case 'heal':
     case 'step':
       return { type: a.type };
+    case 'hold':
+    case 'drop':
+      return { type: a.type, packet: number(a.packet, 1, Number.MAX_SAFE_INTEGER, true) };
+    case 'release':
+    case 'duplicate':
+      return {
+        type: a.type,
+        packet: number(a.packet, 1, Number.MAX_SAFE_INTEGER, true),
+        delay: number(a.delay, 1, 5000, true),
+      };
     case 'link': {
       const from = node(a.from),
         to = node(a.to);

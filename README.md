@@ -8,7 +8,7 @@
 
 An executable exhibit of distributed consensus.
 
-**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.3.1 Release](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.3.1)
+**[进入共识观测台 →](https://qiyuhuating.github.io/quorum-lab/)** · [v0.4.0 发布目标](https://github.com/qiyuhuating/quorum-lab/releases/tag/v0.4.0)
 
 [![Verify and deploy](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml/badge.svg)](https://github.com/qiyuhuating/quorum-lab/actions/workflows/verify-and-deploy.yml)
 
@@ -55,6 +55,18 @@ TypeScript · React · Web Worker · Independent Raft Engine
 
 想观察“拒绝追加 → 领导者回退 → 节点追上”的路径，可导入 [落后节点恢复实验](docs/experiments/lagging-node.json)，逐事件推进；[非对称故障实验](docs/experiments/asymmetric.json) 可直接重放单向链路故障。解释数据来自执行分支，不根据当前画面推测历史。
 
+## 改写消息顺序：选票会产生回声，选民不会
+
+在消息调度台点击 **载入选票回声**。四个节点已经实际投票，回复被暂停。一份回复与它的两份完整载荷副本到达候选者：三次到达，只贡献一个独立选民。候选者停在 **2 / 3**，两份副本的真实处理分支是 `duplicate-vote`。
+
+选择另一节点的暂停选票，将延迟设为 **1ms**，点击释放，再逐事件推进。独立票数达到 **3 / 3**，候选者才成为领导者。谱系图、前后状态和每条 RPC 都来自协议执行记录。
+
+![A real vote reply and two ignored copies cannot manufacture a quorum](docs/media/transport.png)
+
+可以暂停、释放、主动丢弃在途消息，或复制保留窗口内的完整 RPC。释放/复制延迟为 1–5,000ms，最多暂停 32 条消息；暂停期间选举计时器继续运行。旧消息的排期被显式失效，重新释放到原定时刻也只执行一次。链路与离线状态仍在投递时检查。
+
+[选票回声回放](docs/experiments/vote-echo.json) · [旧确认迟到回放](docs/experiments/stale-ack.json) · [设计与验收](docs/transport-design.md)。第二个实验让旧 AppendResponse 晚于更新的确认到达，实际产生 `stale-rpc`，复制进度保持不变。用 `npm run fixtures` 可从公开引擎操作重新生成两份素材。
+
 ## 工程设计
 
 | 设计                               | 解决的问题                                                 |
@@ -69,6 +81,8 @@ TypeScript · React · Web Worker · Independent Raft Engine
 | 有界消息取证与输入验证             | 保留最近 128 条真实 RPC；拒绝无效、超大或超长实验          |
 | 分支解释 + 接收端前后切片          | 区分前缀拒绝、实际截断、过期确认与提交推进                 |
 | 有方向的链路与两次连通检查         | 复现非对称故障，区分发送时和在途期间的消息丢弃             |
+| 可失效的消息排期 + 暂停保留区      | 旧排期不会重复执行；长期暂停不会丢失可释放的真实载荷       |
+| 完整 RPC 副本 + 消息谱系           | 独立传输编号保留相同协议载荷，验证去重与过期确认分支       |
 | 三浏览器生产验收 + Pages 发布门禁  | 验证真实构建、Worker、仓库子路径、移动端与减少动画模式     |
 
 [架构与协议细节](docs/architecture.md) · [设计反思与验收目标](docs/redesign.md) · [验收结果](docs/validation.md) · [路线图](docs/roadmap.md)
@@ -100,7 +114,9 @@ npm run test:e2e
 npm run benchmark
 ```
 
-**24 个协议测试、48 个生产浏览器测试**；另有 100 组混合故障实验，包含分区、单向断链、崩溃和丢包，执行 **469,695** 次状态检查，发送 **372,137** 条模拟消息，全部完整快照精确回放，未检测到安全违规。CI 关闭自动重试，并额外重复 12 次 WebKit 导出/恢复检查。执行记录与测量见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
+**33 个协议测试、66 个生产浏览器测试（每浏览器 22 个）**；另有 100 组混合故障实验，包含分区、单向断链、崩溃、丢包及消息调度，执行 **463,370** 次状态检查，发送 **365,633** 条模拟消息，全部完整快照精确回放，未检测到安全违规。最终收敛还检查五节点在线、日志和状态机一致、commit/applied index 一致，以及暂停消息已清空。其中暂停/释放各 **800** 次，复制 **800** 次，主动丢弃 **898** 次。CI 关闭自动重试，并额外各重复 12 次 WebKit 单向链路、暂停消息导出/恢复及实时控件布局检查。
+
+独立复审发现两处 UI 上下文回归：切换原始消息/副本时谱系仍可能展示另一消息族；并存领导者时选票证明可能展示另一接收者。旧 UI 的两项复现 **2/2 失败**，修复后三浏览器 **6/6 通过**，没有重试。便携验收使用自己启动的解压服务，通过 IPC ready 获取动态端口；四项实际进程检查确认服务身份、启动失败、运行中早退与占用端口行为。最终整套本地 **66/66 通过**，50.5 秒，零重试；最终构建的本地 HTTP 演示与独立解压便携包也通过完整浏览器验收。v0.4 云端发布仍待门禁执行，状态见 [validation.md](docs/validation.md)。这些是测试证据，不能作为形式化证明或真实分布式集群吞吐数据。
 
 实现固定五节点、对称分区与单向链路故障、基本 Raft、模拟稳定存储与字符串状态机。真实磁盘 IO、快照压缩、成员变更、真实客户端发现、恰好一次语义和线性一致读尚未实现。自动写入目标为实验者的全局观察便利，不模拟真实客户端发现。
 

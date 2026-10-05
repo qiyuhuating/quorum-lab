@@ -168,7 +168,7 @@ export function Topology({
           );
         })}
       {snapshot.packets
-        .filter((p) => p.deliverAt + 160 > snapshot.now)
+        .filter((p) => p.status !== 'held' && p.deliverAt + 160 > snapshot.now)
         .slice(-36)
         .map((p) => {
           const [x1, y1] = positions[p.from],

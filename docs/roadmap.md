@@ -24,9 +24,20 @@
 - 24 engine tests and 48 three-browser checks; 20 asymmetric seed tests and 100 mixed-fault exact benchmark replays.
 - Recovering-lagging-node and asymmetric fixtures, production screenshots and updated release artifacts.
 
+## v0.4 — implemented; cloud release pending
+
+- Real packet hold/release/discard/duplication with invalidated scheduling identities and bounded held storage.
+- A delivery workbench, actual RPC lineage, independent-voter proof and keyboard controls.
+- A vote-echo scenario built through public actions; held replies restore through exact export/import.
+- Delayed acknowledgement fixture that executes the stale-response guard without regressing replication.
+- 33 engine tests and 66 three-browser cases passed locally (22 each, zero retries), plus 100 mixed-fault exact replays including packet controls.
+- Independent review reproduced two lineage/selected-voter context regressions: 2/2 failed on the old UI, then 6/6 passed across three browsers after correction without retries.
+- Final convergence checks all nodes online, matching logs/commit/applied/state and no held packets.
+- Final-build local live-style and extracted portable browser acceptance passed. The portable gate uses its spawned server's IPC ready signal and allocated port; four local process probes passed without reusing another service.
+- Public and portable cloud gates must pass before release; zero retries and 36 extra WebKit export/layout cases are configured.
+
 ## Next — fault exploration
 
-- Packet duplication and explicit delivery controls.
 - Generated adversarial schedules and failure shrinking into a minimal replay.
 - Minimal failure traces connecting multiple local event slices.
 - Replay checkpoint caching if measured historical rebuild cost warrants it.
@@ -44,7 +55,7 @@
 - A bounded TLA+ or PlusCal model with checked fault schedules.
 - Durable storage adapter with explicit fsync and recovery semantics in a separate runtime.
 
-Only v0.1–v0.3 and the release pipeline are implemented. Runtime observation and sampled testing do not establish a formal proof.
+Only v0.1–v0.4 and the release pipeline are implemented. Runtime observation and sampled testing do not establish a formal proof.
 
 ## Release engineering
 

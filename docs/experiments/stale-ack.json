@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "seed": 7,
+  "actions": [
+    {
+      "type": "advance",
+      "ms": 1800
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "order",
+      "value": "first"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "hold",
+      "packet": 369
+    },
+    {
+      "type": "write",
+      "node": "N1",
+      "key": "order",
+      "value": "second"
+    },
+    {
+      "type": "advance",
+      "ms": 600
+    },
+    {
+      "type": "release",
+      "packet": 369,
+      "delay": 1
+    },
+    {
+      "type": "advance",
+      "ms": 1
+    }
+  ]
+}

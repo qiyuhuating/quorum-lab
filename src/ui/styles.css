@@ -845,6 +845,9 @@ main {
 }
 .causal-panel {
   position: relative;
+  height: 500px;
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
 .causal-panel::before {
   content: '';
@@ -1142,6 +1145,9 @@ main {
   }
 }
 @media (max-width: 480px) {
+  .causal-panel {
+    height: 560px;
+  }
   .effect-heading {
     padding: 16px 14px 0;
     gap: 6px;

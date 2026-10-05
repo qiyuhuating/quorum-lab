@@ -32,6 +32,18 @@ test('minority retains pending entries while majority commits and heals', async 
   await page.getByRole('button', { name: '提交提案' }).click();
   await page.getByLabel('运行实验', { exact: true }).click();
   await expect(page.getByTestId('committed')).toHaveText('03');
+  const positions = await page.evaluate(async () => {
+    const control = [...document.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('恢复全部链路'),
+    )!;
+    const samples: number[] = [];
+    for (let i = 0; i < 12; i++) {
+      samples.push(control.getBoundingClientRect().top + window.scrollY);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return samples;
+  });
+  expect(Math.max(...positions) - Math.min(...positions)).toBeLessThanOrEqual(1);
   await page.getByRole('button', { name: '恢复全部链路' }).click();
   await expect(page.getByTestId('state-machine')).toContainText('majority-safe');
   await expect(page.getByTestId('state-machine')).not.toContainText('red-route');
@@ -73,8 +85,23 @@ test('six narrated checkpoints show actual minority, majority and healed evidenc
 test('event stepping, real RPC payloads and baseline comparison survive a replay branch', async ({
   page,
 }) => {
+  // Delay the real worker request to exercise the pending chapter transition.
+  await page.evaluate(() => {
+    Worker.prototype.postMessage = new Proxy(Worker.prototype.postMessage, {
+      apply(target, receiver, args) {
+        if (args[0]?.type === 'story') {
+          (window as Window & { releaseStory?: () => void }).releaseStory = () =>
+            Reflect.apply(target, receiver, args);
+        } else Reflect.apply(target, receiver, args);
+      },
+    });
+  });
   await page.getByRole('button', { name: '章节 5 重新连通' }).click();
-  await page.getByRole('button', { name: '固定当前状态作对照' }).click();
+  const capture = page.getByRole('button', { name: '固定当前状态作对照' });
+  await expect(capture).toBeDisabled();
+  await page.evaluate(() => (window as Window & { releaseStory?: () => void }).releaseStory!());
+  await expect(page.getByTestId('clock')).toHaveText('4.80s');
+  await capture.click();
   await page.getByLabel('推进下一个协议事件').click();
   await expect(page.getByTestId('clock')).not.toHaveText('4.80s');
   await expect(page.getByTestId('comparison')).toContainText('对照 4.80s');

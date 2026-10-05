@@ -3,6 +3,7 @@ import type { PartitionStory } from './story.ts';
 
 export type Request =
   | { type: 'story'; chapter: number }
+  | { type: 'echo' }
   | { type: 'init'; seed: number; starter?: boolean }
   | { type: 'act'; action: Action }
   | { type: 'seek'; cursor: number }

@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "seed": 7,
+  "actions": [
+    {
+      "type": "network",
+      "latency": 10,
+      "loss": 0
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "hold",
+      "packet": 17
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "hold",
+      "packet": 21
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "hold",
+      "packet": 25
+    },
+    {
+      "type": "step"
+    },
+    {
+      "type": "hold",
+      "packet": 29
+    },
+    {
+      "type": "release",
+      "packet": 17,
+      "delay": 1
+    },
+    {
+      "type": "duplicate",
+      "packet": 17,
+      "delay": 2
+    },
+    {
+      "type": "duplicate",
+      "packet": 17,
+      "delay": 3
+    },
+    {
+      "type": "advance",
+      "ms": 3
+    }
+  ]
+}

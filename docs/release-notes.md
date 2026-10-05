@@ -1,22 +1,25 @@
-# Quorum Lab v0.3.1 — Every message tells you why
+# Quorum Lab v0.4.0 — The delivery is yours
 
 **[Live observatory](https://qiyuhuating.github.io/quorum-lab/)** · [Source and architecture](https://github.com/qiyuhuating/quorum-lab)
 
-A causal debugger and directional fault workbench for the independent five-node Raft laboratory.
+An adversarial message scheduler for the independent five-node Raft laboratory.
 
-Stability patch: download anchors are attached to the document and their object URLs remain alive for 60 seconds before cleanup. CI now uses zero browser retries and adds 12 repeated WebKit export/import checks. v0.3.0 had one export timeout that passed on retry; this patch strengthens the product path and makes that outcome fail the gate.
+- Hold a real RPC while protocol timers continue, release it at a chosen delay, discard it without invoking the receiver, or copy the complete payload into an independent transmission.
+- Scheduling identities invalidate obsolete heap records: releasing to the original deadline still delivers once. Held storage survives forensic-history eviction; limits and unavailable packet references reject before history mutation.
+- A delivery board shows intercepted messages, upcoming arrivals, provenance and actual independent voters. An RPC lineage diagram distinguishes physical copies from logical voters/requests.
+- The vote-echo exhibit intercepts four real granted replies. One reply and two copies yield only 2/3 independent votes; copies run `duplicate-vote`. Another peer reply reaches 3/3 and elects the candidate.
+- A delayed-ack fixture lets newer confirmations overtake a held AppendResponse. The late reply executes `stale-rpc` without regressing replication or changing receiver state.
+- Seed/action replay restores held storage, copies, decisions and ordering exactly. Invalid replay references preserve the current experiment and original future.
+- Actual production screenshots/video, mobile console, two generated replay fixtures and a two-minute interview walkthrough accompany the implementation.
+- Local verification passed **33 engine tests** and **66 production browser checks** (22 per browser, 50.5 seconds, zero retries). CI adds **36 WebKit export/layout checks**, configured without retries; v0.4 cloud gates are pending at preparation of this record.
+- Independent review reproduced two UI context regressions: selected original/copy families could show another lineage, and vote proof could show another reply recipient during simultaneous leader terms. The old UI failed both cases; the repaired UI passed **6/6** targeted checks across three browsers without retries.
+- A first 66-case run exposed a baseline-capture race (**65 passed / 1 failed**). Capture is now disabled during pending replay; the existing test holds/releases the real Worker request and checks the correct checkpoint before capture. The subsequent complete run passed 66/66.
+- The 100-seed combined-fault benchmark includes **800 holds, 800 releases, 800 copies and 898 discards**, **463,370 state checks** and **365,633 physical messages**. All snapshots replay exactly; no safety violation detected.
+- Final convergence also requires every node online, identical logs and state machines, equal commit/applied indices and empty held storage.
+- Portable verification uses a dynamic port and an IPC ready message from the actual spawned extracted server. Startup failure or early exit rejects; runtime exit terminates the owned verifier. Four actual local process probes passed, including an occupied endpoint receiving zero requests and `EADDRINUSE` producing no ready signal.
+- The final production build and independently extracted portable ZIP passed local browser acceptance. Both reports mark revision verification false for local execution, with all new checks passed, responsive widths 320/390/768/1440px and no page/network/external errors.
+- The exact public revision and extracted portable ZIP must exercise echo, held export/import, discard and delayed acknowledgement before publication. Revision-stamped reports and artifacts will be covered by SHA-256 checksums; no v0.4 cloud pass is claimed in this preparation record.
 
-- Actual RPC receive-branch explanations: accepted, rejected, ignored and transport-dropped verdicts with diagnostic values.
-- Before/after receiver slices for role, term, vote, log tail, commit and applied indices; historical packet inspection preserves its original slice.
-- Distinct prefix rejection, conflict truncation, old-term requests, stale confirmations and current-term commit advancement.
-- Independent directed cuts, a keyboard-operable 5×5 matrix and directional topology arrows. Cuts affect sends and in-flight deliveries; heal clears cuts and partitions.
-- Bounded RPC filters for exceptional outcomes and actual repairs; exported actions restore cuts and all diagnostic observations exactly.
-- Recovering-lagging-node and asymmetric experiment fixtures, actual production screenshots, recording and updated interview walkthrough.
-- Existing six-chapter exhibit, Worker isolation, replay branching, portable demo and gated version-aware release pipeline remain available.
-- Cloud-only publication gates now test the actual Pages URL and extracted portable ZIP, then attach both revision-stamped reports with SHA-256 checksums. The remaining pipeline can finish independently of the development computer.
+Source/media are published using the connected GitHub blob/tree/commit/ref tools. The gated Actions pipeline performs deployment, acceptance, packaging and release publication in the cloud.
 
-Validation: 24 engine tests, 48 production tests across Chromium/Firefox/WebKit, 20 asymmetric seed cases and 100 exact mixed-fault benchmark replays. The benchmark executed 469,695 runtime checks and sent 372,137 simulated messages with zero detected safety violations.
-
-The source/media commit uses the connected GitHub blob/tree/commit/ref tools. The Actions release job verifies artifact integrity and performs publication after verification and Pages deployment. The packaged source documents executed validation and the production check version explicitly.
-
-Scope: fixed membership, symmetric partitions, directed cuts and simulated stable storage. A causal slice explains one local event. No real disk durability, member reconfiguration, exactly-once client semantics, linearizable reads or formal correctness proof.
+Scope: fixed membership and simulated stable storage. Transport control and event explanations are model/test instrumentation. No real disk durability, member reconfiguration, client exactly-once semantics, linearizable reads or formal correctness proof.

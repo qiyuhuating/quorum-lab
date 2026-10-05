@@ -1,0 +1,15 @@
+{
+  "seeds": 100,
+  "virtualMsPerSeed": 49800,
+  "faultModel": "symmetric partitions + directed cuts + crash/recovery + jitter/loss",
+  "safetyViolations": 0,
+  "exactReplays": 100,
+  "transitions": 469695,
+  "messagesSent": 372137,
+  "simulationMedianMs": 98.62,
+  "simulationP95Ms": 115.14,
+  "replayMeanMs": 45.54,
+  "node": "v24.16.0",
+  "platform": "win32",
+  "note": "Wall-time numbers are local measurements, not a distributed-system throughput benchmark."
+}

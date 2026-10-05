@@ -1,6 +1,6 @@
 {
   "name": "quorum-lab",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "description": "A deterministic Raft consensus laboratory with fault injection and replay.",
   "type": "module",
@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "benchmark": "node --experimental-strip-types scripts/benchmark.ts",
+    "fixtures": "node --experimental-strip-types scripts/generate-transport-fixtures.ts",
     "demo": "node scripts/serve.mjs dist",
     "check": "npm run typecheck && npm test && npm run build",
     "format": "prettier --write .",
